@@ -107,7 +107,33 @@
             <div id="modal-content" class="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-2xl transform transition-transform duration-300 scale-95">
                 <div class="p-6">
                     <h2 id="modal-title" class="text-2xl font-bold mb-4 text-slate-900 dark:text-white">Edit Transaction</h2>
-                    <textarea id="json-editor" class="w-full h-64 p-3 bg-slate-100 dark:bg-slate-900 rounded-lg border border-slate-300 dark:border-slate-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-mono" spellcheck="false"></textarea>
+                    <form id="tx-form" class="w-full">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+                            <div class="sm:col-span-2">
+                                <label for="tx-name" class="block text-sm font-medium text-slate-700 dark:text-slate-200">Name</label>
+                                <input id="tx-name" type="text" class="mt-1 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g. Grocery, Salary" />
+                            </div>
+                            <div>
+                                <label for="tx-time" class="block text-sm font-medium text-slate-700 dark:text-slate-200">Time</label>
+                                <input id="tx-time" type="datetime-local" class="mt-1 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="tx-desc" class="block text-sm font-medium text-slate-700 dark:text-slate-200">Description</label>
+                            <input id="tx-desc" type="text" class="mt-1 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Optional details..." />
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="flex items-center justify-between">
+                                <label class="block text-sm font-medium text-slate-700 dark:text-slate-200">Amounts</label>
+                                <button id="add-amt" type="button" class="text-sm text-blue-600 hover:underline">Add row</button>
+                            </div>
+                            <div id="amt-list" class="mt-2 space-y-2">
+                                <!-- amount rows injected here -->
+                            </div>
+                        </div>
+                    </form>
                 </div>
                 <div class="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 flex flex-col sm:flex-row-reverse gap-3 rounded-b-xl">
                     <button id="save-btn" class="w-full sm:w-auto sm:ml-3 inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:ring-offset-slate-800 disabled:opacity-50">Save</button>
@@ -163,8 +189,13 @@
         const addBtn = document.getElementById('add-btn');
         const modal = document.getElementById('modal');
         const modalContent = document.getElementById('modal-content');
-        const modalTitle = document.getElementById('modal-title');
-        const jsonEditor = document.getElementById('json-editor');
+    const modalTitle = document.getElementById('modal-title');
+    const txForm = document.getElementById('tx-form');
+    const txName = document.getElementById('tx-name');
+    const txDesc = document.getElementById('tx-desc');
+    const txTime = document.getElementById('tx-time');
+    const amtList = document.getElementById('amt-list');
+    const addAmtBtn = document.getElementById('add-amt');
         const saveBtn = document.getElementById('save-btn');
         const deleteBtn = document.getElementById('delete-btn');
         const cancelBtn = document.getElementById('cancel-btn');
@@ -178,6 +209,46 @@
             const timePart = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
             return { datePart, timePart };
         };
+
+        // --- Amount row helpers ---
+        const createAmtRow = (wallet = '', amt = 0) => {
+            const row = document.createElement('div');
+            row.className = 'flex gap-2 items-center';
+
+            const walletInput = document.createElement('input');
+            walletInput.type = 'text';
+            walletInput.placeholder = 'Wallet';
+            walletInput.value = wallet;
+            walletInput.className = 'flex-1 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2 text-sm';
+
+            const amtInput = document.createElement('input');
+            amtInput.type = 'text';
+            amtInput.step = '0.01';
+            amtInput.placeholder = '-0.00';
+            amtInput.value = amt === 0 ? '-' : amt;
+            amtInput.className = 'w-36 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-mono';
+
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'text-red-600 hover:underline text-sm';
+            removeBtn.textContent = 'Remove';
+            removeBtn.addEventListener('click', () => row.remove());
+
+            row.appendChild(walletInput);
+            row.appendChild(amtInput);
+            row.appendChild(removeBtn);
+
+            return row;
+        };
+
+        const populateAmtList = (amts) => {
+            amtList.innerHTML = '';
+            amts.forEach(a => amtList.appendChild(createAmtRow(a.wallet, a.amt)));
+        };
+
+        addAmtBtn.addEventListener('click', () => {
+            amtList.appendChild(createAmtRow('', 0));
+        });
 
         const getCurrentDateTime = () => {
             const now = new Date();
@@ -301,7 +372,7 @@
                             </div>
                         </div>
                         <div class="font-mono font-bold text-lg text-right ${isCredit ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}">
-                            ${isCredit ? '' : '-' }₹${Math.abs(totalAmt).toLocaleString('en-IN')}
+                            ${Math.abs(totalAmt).toLocaleString('en-IN')}
                         </div>
                     </div>
                     ${walletDetailsHtml ? `<div class="mt-3 pt-2 pl-16 border-t border-slate-200 dark:border-slate-700 space-y-1">${walletDetailsHtml}</div>` : ''}
@@ -327,17 +398,18 @@
             currentlyEditingIndex = index;
             if (index !== null) {
                 modalTitle.textContent = 'Edit Transaction';
-                jsonEditor.value = JSON.stringify(transactions[index], null, 2);
+                const tx = transactions[index];
+                txName.value = tx.name || '';
+                txDesc.value = tx.desc || '';
+                txTime.value = tx.time ? tx.time.slice(0,16) : getCurrentDateTime();
+                populateAmtList(tx.amts || [{ wallet: '', amt: 0 }]);
                 deleteBtn.style.display = 'inline-flex';
             } else {
                 modalTitle.textContent = 'Add New Transaction';
-                const newTxTemplate = {
-                    name: "",
-                    desc: "",
-                    amts: [{ wallet: "", amt: 0 }],
-                    time: getCurrentDateTime()
-                };
-                jsonEditor.value = JSON.stringify(newTxTemplate, null, 2);
+                txName.value = '';
+                txDesc.value = '';
+                txTime.value = getCurrentDateTime();
+                populateAmtList([{ wallet: 'UPI', amt: 0 }, { wallet: 'Cash', amt: 0 }]);
                 deleteBtn.style.display = 'none';
             }
             modal.classList.remove('invisible', 'opacity-0');
@@ -351,19 +423,41 @@
         };
 
         const handleSave = async () => {
-            let updatedTx;
-            try {
-                updatedTx = JSON.parse(jsonEditor.value);
-            } catch (error) {
-                showToast('Invalid JSON format. Please check your input.');
+            // Build transaction object from form
+            const amts = [];
+            const rows = Array.from(amtList.children);
+            for (const r of rows) {
+                const inputs = r.getElementsByTagName('input');
+                const wallet = inputs[0].value.trim();
+                const amtRaw = inputs[1].value;
+                const amt = (amtRaw === '-' || amtRaw === '') ? 0 : Number(amtRaw);
+                if (!wallet) {
+                    showToast('Each amount row must have a wallet name.');
+                    return;
+                }
+                if (Number.isNaN(amt) || amtRaw.trim() === '') {
+                    showToast('Amounts must be valid numbers and cannot be empty.');
+                    return;
+                }
+                amts.push({ wallet, amt });
+            }
+
+            if (!txName.value.trim()) {
+                showToast('Transaction name is required.');
                 return;
             }
-            
-            if (!updatedTx.name || !updatedTx.time || !Array.isArray(updatedTx.amts)) {
-                showToast('JSON is missing required fields: name, time, or amts array.');
+            if (!txTime.value) {
+                showToast('Transaction time is required.');
                 return;
             }
-            
+
+            const updatedTx = {
+                name: txName.value.trim(),
+                desc: txDesc.value.trim(),
+                amts,
+                time: txTime.value
+            };
+
             const tempTransactions = JSON.parse(JSON.stringify(transactions)); // Deep copy for rollback on failure
             if (currentlyEditingIndex !== null) {
                 tempTransactions[currentlyEditingIndex] = updatedTx;
@@ -410,9 +504,9 @@
         saveBtn.addEventListener('click', handleSave);
         deleteBtn.addEventListener('click', handleDelete);
         cancelBtn.addEventListener('click', closeModal);
-        modal.addEventListener('click', (e) => {
-             if (e.target === modal) closeModal();
-        });
+       modal.addEventListener('click', (e) => {
+           if (e.target === modal) closeModal();
+       });
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && !modal.classList.contains('invisible')) {
                 closeModal();
