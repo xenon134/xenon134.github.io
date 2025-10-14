@@ -122,7 +122,13 @@
     document.addEventListener('DOMContentLoaded', () => {
         // --- JSONBin.io Configuration ---
         const binId = '68eb75dc43b1c97be963caa5';
-        const apiKey = '$2a$10$RGAJ4uYzmAsyXXjwoqHhe.sOZskop0YiJ/qIfNQLsl7hqqs9Z8LSq';
+        let apiKey = localStorage.getItem('jsonBinApiKey');
+        if (!apiKey) {
+            apiKey = prompt('Enter key: ');
+            if (apiKey) {
+                localStorage.setItem('jsonBinApiKey', apiKey);
+            }
+        }
 
         // --- JSONBin.io API Functions ---
         async function getData() {
