@@ -96,7 +96,7 @@
         </main>
 
         <!-- Floating Action Button -->
-        <button id="add-btn" class="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-400 dark:focus:ring-blue-800 transition-transform duration-200 transform hover:scale-105">
+        <button id="add-btn" hidden class="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-400 dark:focus:ring-blue-800 transition-transform duration-200 transform hover:scale-105 hidden">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
@@ -189,13 +189,13 @@
         const addBtn = document.getElementById('add-btn');
         const modal = document.getElementById('modal');
         const modalContent = document.getElementById('modal-content');
-    const modalTitle = document.getElementById('modal-title');
-    const txForm = document.getElementById('tx-form');
-    const txName = document.getElementById('tx-name');
-    const txDesc = document.getElementById('tx-desc');
-    const txTime = document.getElementById('tx-time');
-    const amtList = document.getElementById('amt-list');
-    const addAmtBtn = document.getElementById('add-amt');
+        const modalTitle = document.getElementById('modal-title');
+        const txForm = document.getElementById('tx-form');
+        const txName = document.getElementById('tx-name');
+        const txDesc = document.getElementById('tx-desc');
+        const txTime = document.getElementById('tx-time');
+        const amtList = document.getElementById('amt-list');
+        const addAmtBtn = document.getElementById('add-amt');
         const saveBtn = document.getElementById('save-btn');
         const deleteBtn = document.getElementById('delete-btn');
         const cancelBtn = document.getElementById('cancel-btn');
@@ -307,7 +307,7 @@
             });
             
             const totalEl = document.createElement('div');
-            totalEl.className = 'flex items-center gap-2 font-bold pt-1 border-slate-300 dark:border-slate-600';
+            totalEl.className = 'flex items-center gap-2 font-bold border-slate-300 dark:border-slate-600';
             totalEl.innerHTML = `
                 <span class="text-slate-800 dark:text-slate-100">Total:</span>
                 <span class="font-mono ${totalBalance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}">₹${totalBalance.toLocaleString('en-IN')}</span>
@@ -391,6 +391,7 @@
         const rerenderApp = () => {
             renderBalances();
             renderTransactions();
+            document.getElementById("add-btn").classList.remove("hidden");
         };
 
         // --- MODAL LOGIC ---

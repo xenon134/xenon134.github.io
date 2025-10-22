@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meal Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles for a polished look and feel */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        /* Custom scrollbar for a better dark mode experience */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background-color: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: #94a3b8;
+            border-radius: 10px;
+        }
+        .dark ::-webkit-scrollbar-track {
+            background-color: #1e293b;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background-color: #475569;
+        }
+
+        /* Modal transition */
+        #modal {
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+
+        /* Ensure fixed header has a backdrop blur for readability */
+        .header-backdrop {
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        /* Custom toast notification styling */
+        #toast {
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+            transform: translateY(-150%);
+        }
+        #toast.show {
+            transform: translateY(0);
+        }
+
+        /* Simple spinner for loading states */
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #09f;
+            animation: spin 1s ease infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .dark .spinner {
+            border-left-color: #38bdf8;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-200 antialiased">
+
+    <!-- Toast Notification for errors -->
+    <div id="toast" class="fixed top-5 right-5 bg-red-500 text-white py-2 px-4 rounded-lg shadow-lg z-50 opacity-0">
+        <p id="toast-message"></p>
+    </div>
+
+    <!-- Main Application Container -->
+    <div id="app" class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <!-- Header -->
+        <header id="header" class="fixed top-0 left-0 right-0 z-10 bg-slate-100/80 dark:bg-slate-900/80 header-backdrop">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+                <h1 class="text-xl font-bold text-slate-900 dark:text-white">My Meals</h1>
+            </div>
+        </header>
+
+        <!-- Meal List -->
+        <main id="meal-list" class="pt-20 pb-24">
+            <!-- Meals will be dynamically inserted here -->
+        </main>
+
+        <!-- Floating Action Button -->
+        <button id="add-btn" hidden class="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-400 dark:focus:ring-blue-800 transition-transform duration-200 transform hover:scale-105">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+        </button>
+
+        <!-- Modal for Add/Edit Meal -->
+        <div id="modal" class="fixed inset-0 bg-black/60 z-40 flex items-center justify-center p-4 invisible opacity-0">
+            <div id="modal-content" class="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-lg transform transition-transform duration-300 scale-95">
+                <div class="p-6">
+                    <h2 id="modal-title" class="text-2xl font-bold mb-4 text-slate-900 dark:text-white">Edit Meal</h2>
+                    <form id="meal-form" class="w-full space-y-4">
+                        <div>
+                            <label for="meal-name" class="block text-sm font-medium text-slate-700 dark:text-slate-200">Name</label>
+                            <input id="meal-name" type="text" class="mt-1 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g. Scrambled Eggs" />
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="meal-type" class="block text-sm font-medium text-slate-700 dark:text-slate-200">Type</label>
+                                <select id="meal-type" class="mt-1 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <!-- Options will be populated dynamically -->
+                                </select>
+                            </div>
+                            <div>
+                                <label for="meal-time" class="block text-sm font-medium text-slate-700 dark:text-slate-200">Time</label>
+                                <input id="meal-time" type="datetime-local" class="mt-1 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                            </div>
+                        </div>
+                        <div>
+                            <label for="meal-desc" class="block text-sm font-medium text-slate-700 dark:text-slate-200">Description</label>
+                            <input id="meal-desc" type="text" class="mt-1 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Optional details..." />
+                        </div>
+                    </form>
+                </div>
+                <div class="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 flex flex-col sm:flex-row-reverse gap-3 rounded-b-xl">
+                    <button id="save-btn" class="w-full sm:w-auto sm:ml-3 inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:ring-offset-slate-800 disabled:opacity-50">Save</button>
+                    <button id="delete-btn" class="w-full sm:w-auto inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 dark:ring-offset-slate-800 disabled:opacity-50">Delete</button>
+                    <button id="cancel-btn" class="w-full sm:w-auto mt-3 sm:mt-0 inline-flex justify-center rounded-md border border-slate-300 dark:border-slate-500 shadow-sm px-4 py-2 bg-white dark:bg-slate-600 text-base font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400 dark:ring-offset-slate-800">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- JSONBin.io Configuration ---
+        const binId = '68f7c84443b1c97be9767165';
+        const encryptedApiKey = 'U2FsdGVkX19PMVVLaj8Ed3JmgzIhRNT/icRGKBpF383oCbPWIcUL4WOI7qmvkOpfBTKiNyb4fwZmDk/6l/kMfv3z+LwI4//coDhvhuTepOQ='; // To be filled with encrypted API key
+        const encryptedVerification = 'U2FsdGVkX19sutNmCv44uh3hXWHS/KpSQE+bG219Em8='; // To be filled with CryptoJS.AES.encrypt("test", password).toString()
+        let apiKey = localStorage.getItem('jsonBinApiKey');
+
+        // --- JSONBin.io API Functions ---
+        async function getData() {
+          const response = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
+            method: 'GET',
+            headers: {
+              'X-Master-Key': apiKey,
+            },
+          });
+          const data = await response.json();
+          return data.record;
+        }
+
+        async function setData(jsonData) {
+          await fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Master-Key': apiKey,
+            },
+            body: JSON.stringify(jsonData),
+          });
+        }
+
+        // --- STATE ---
+        let data = { rows: [], types: [] };
+        let currentlyEditingIndex = null;
+        
+        // --- DOM ELEMENTS ---
+        const mealList = document.getElementById('meal-list');
+        const addBtn = document.getElementById('add-btn');
+        const modal = document.getElementById('modal');
+        const modalContent = document.getElementById('modal-content');
+        const modalTitle = document.getElementById('modal-title');
+        const mealForm = document.getElementById('meal-form');
+        const mealName = document.getElementById('meal-name');
+        const mealDesc = document.getElementById('meal-desc');
+        const mealTime = document.getElementById('meal-time');
+        const mealType = document.getElementById('meal-type');
+        const saveBtn = document.getElementById('save-btn');
+        const deleteBtn = document.getElementById('delete-btn');
+        const cancelBtn = document.getElementById('cancel-btn');
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toast-message');
+
+        // --- UTILITY FUNCTIONS ---
+        const formatDate = (dateString) => {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        };
+
+        const getCurrentDateTime = () => {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            return `${year}-${month}-${day}T${hours}:${minutes}`;
+        };
+
+        const showToast = (message) => {
+            toastMessage.textContent = message;
+            toast.classList.add('show', 'opacity-100');
+            setTimeout(() => {
+                toast.classList.remove('show', 'opacity-100');
+            }, 3000);
+        };
+
+        const setModalButtonsLoading = (isLoading) => {
+            saveBtn.disabled = isLoading;
+            deleteBtn.disabled = isLoading;
+            cancelBtn.disabled = isLoading;
+            saveBtn.textContent = isLoading ? 'Saving...' : 'Save';
+            deleteBtn.textContent = isLoading ? 'Deleting...' : 'Delete';
+        };
+
+        const showAuthError = (message) => {
+            mealList.innerHTML = `
+                <div class="text-center py-10 px-4">
+                     <svg class="mx-auto h-12 w-12 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <h3 class="mt-2 text-lg font-medium text-slate-800 dark:text-slate-200">Authentication Failed</h3>
+                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">${message}</p>
+                </div>`;
+        };
+
+        // --- RENDER FUNCTIONS ---
+        const renderMeals = () => {
+            mealList.innerHTML = '';
+            
+            if (!data.rows || data.rows.length === 0) {
+                mealList.innerHTML = `<p class="text-center text-slate-500 dark:text-slate-400 py-10">No meals yet. Click the '+' button to add one!</p>`;
+                return;
+            }
+
+            const sortedMeals = [...data.rows].sort((a, b) => new Date(b.time) - new Date(a.time));
+
+            const groupedByDate = sortedMeals.reduce((acc, meal) => {
+                const date = meal.time.split('T')[0];
+                if (!acc[date]) {
+                    acc[date] = [];
+                }
+                acc[date].push(meal);
+                return acc;
+            }, {});
+
+            Object.keys(groupedByDate).forEach(date => {
+                const mealsForDate = groupedByDate[date];
+                const dateGroupContainer = document.createElement('div');
+                dateGroupContainer.className = 'flex gap-4 sm:gap-6 mb-6';
+
+                const dateDisplay = document.createElement('div');
+                dateDisplay.className = 'w-20 sm:w-24 flex-shrink-0 text-right';
+                const d = new Date(date + 'T00:00:00');
+                dateDisplay.innerHTML = `
+                    <p class="font-bold text-lg text-slate-800 dark:text-slate-200">${d.toLocaleDateString('en-US', { month: 'short' })} ${d.getDate()}</p>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">${d.getFullYear()}</p>
+                `;
+                
+                const mealsContainer = document.createElement('div');
+                mealsContainer.className = 'flex-grow space-y-3';
+
+                mealsForDate.forEach(meal => {
+                    const mealIndex = data.rows.findIndex(m => m === meal);
+                    const mealEl = document.createElement('div');
+                    mealEl.className = 'bg-white dark:bg-slate-800 rounded-xl shadow-md p-4 cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-all duration-200';
+                    mealEl.dataset.index = mealIndex;
+
+                    const displayName = meal.name.trim() || meal.type;
+
+                    mealEl.innerHTML = `
+                        <p class="font-semibold text-slate-900 dark:text-white">${displayName}</p>
+                        ${meal.desc ? `<p class="text-sm text-slate-500 dark:text-slate-400 mt-1">${meal.desc}</p>` : ''}
+                        <p class="text-xs text-blue-500 dark:text-blue-400 mt-2 font-medium">${meal.type}</p>
+                    `;
+                    mealEl.addEventListener('click', () => openModal(mealIndex));
+                    mealsContainer.appendChild(mealEl);
+                });
+
+                dateGroupContainer.appendChild(dateDisplay);
+                dateGroupContainer.appendChild(mealsContainer);
+                mealList.appendChild(dateGroupContainer);
+            });
+        };
+
+        const rerenderApp = () => {
+            renderMeals();
+            document.getElementById("add-btn").classList.remove("hidden");
+        };
+
+        // --- MODAL LOGIC ---
+        const populateTypeDropdown = (selectedType = '') => {
+            mealType.innerHTML = '';
+            data.types.forEach(type => {
+                const option = document.createElement('option');
+                option.value = type;
+                option.textContent = type;
+                if (type === selectedType) {
+                    option.selected = true;
+                }
+                mealType.appendChild(option);
+            });
+            const addOption = document.createElement('option');
+            addOption.value = 'add_new';
+            addOption.textContent = 'Add New Type...';
+            mealType.appendChild(addOption);
+        };
+
+        mealType.addEventListener('change', () => {
+            if (mealType.value === 'add_new') {
+                const newType = prompt('Enter new meal type:');
+                if (newType && !data.types.includes(newType)) {
+                    data.types.push(newType);
+                    data.types.sort();
+                    populateTypeDropdown(newType);
+                } else if (!newType) {
+                    mealType.selectedIndex = 0; // Revert if cancelled
+                } else {
+                    populateTypeDropdown(newType); // Select existing if typed again
+                }
+            }
+        });
+
+        const openModal = (index = null) => {
+            currentlyEditingIndex = index;
+            if (index !== null) {
+                modalTitle.textContent = 'Edit Meal';
+                const meal = data.rows[index];
+                mealName.value = meal.name || '';
+                mealDesc.value = meal.desc || '';
+                mealTime.value = meal.time ? meal.time.slice(0,16) : getCurrentDateTime();
+                populateTypeDropdown(meal.type);
+                deleteBtn.style.display = 'inline-flex';
+            } else {
+                modalTitle.textContent = 'Add New Meal';
+                mealName.value = '';
+                mealDesc.value = '';
+                mealTime.value = getCurrentDateTime();
+                populateTypeDropdown(data.types.length > 0 ? data.types[0] : '');
+                deleteBtn.style.display = 'none';
+            }
+            modal.classList.remove('invisible', 'opacity-0');
+            modalContent.classList.remove('scale-95');
+        };
+
+        const closeModal = () => {
+            modal.classList.add('invisible', 'opacity-0');
+            modalContent.classList.add('scale-95');
+            currentlyEditingIndex = null;
+        };
+
+        const handleSave = async () => {
+            if (!mealType.value || mealType.value === 'add_new') {
+                showToast('Please select a meal type.');
+                return;
+            }
+            if (!mealTime.value) {
+                showToast('Meal time is required.');
+                return;
+            }
+
+            const updatedMeal = {
+                name: mealName.value.trim(),
+                desc: mealDesc.value.trim(),
+                type: mealType.value,
+                time: mealTime.value
+            };
+
+            const tempData = JSON.parse(JSON.stringify(data)); // Deep copy
+            if (currentlyEditingIndex !== null) {
+                tempData.rows[currentlyEditingIndex] = updatedMeal;
+            } else {
+                tempData.rows.unshift(updatedMeal);
+            }
+
+            setModalButtonsLoading(true);
+            try {
+                await setData(tempData);
+                data = tempData; // Commit change
+                rerenderApp();
+                closeModal();
+            } catch (err) {
+                console.error("Failed to save data:", err);
+                showToast("Error: Could not save changes to the server.");
+            } finally {
+                setModalButtonsLoading(false);
+            }
+        };
+
+        const handleDelete = async () => {
+            if (currentlyEditingIndex !== null) {
+                const tempData = JSON.parse(JSON.stringify(data));
+                tempData.rows = tempData.rows.filter((_, index) => index !== currentlyEditingIndex);
+                
+                setModalButtonsLoading(true);
+                try {
+                    await setData(tempData);
+                    data = tempData; // Commit change
+                    rerenderApp();
+                    closeModal();
+                } catch (err) {
+                    console.error("Failed to delete data:", err);
+                    showToast("Error: Could not delete entry on the server.");
+                } finally {
+                    setModalButtonsLoading(false);
+                }
+            }
+        };
+
+        // --- EVENT LISTENERS ---
+        addBtn.addEventListener('click', () => openModal());
+        saveBtn.addEventListener('click', handleSave);
+        deleteBtn.addEventListener('click', handleDelete);
+        cancelBtn.addEventListener('click', closeModal);
+       modal.addEventListener('click', (e) => {
+           if (e.target === modal) closeModal();
+       });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !modal.classList.contains('invisible')) {
+                closeModal();
+            }
+        });
+
+        // --- INITIALIZATION ---
+        const initializeApp = async () => {
+            if (!apiKey) {
+                const password = prompt('Password?');
+                if (password) {
+                    try {
+                        const decryptedVerification = CryptoJS.AES.decrypt(encryptedVerification, password).toString(CryptoJS.enc.Utf8);
+                        if (decryptedVerification === 'test') {
+                            const decryptedKey = CryptoJS.AES.decrypt(encryptedApiKey, password).toString(CryptoJS.enc.Utf8);
+                            if (decryptedKey) {
+                                apiKey = decryptedKey;
+                                localStorage.setItem('jsonBinApiKey', apiKey);
+                            } else {
+                                throw new Error("Key decryption failed.");
+                            }
+                        } else {
+                            showAuthError("Incorrect password.");
+                            return;
+                        }
+                    } catch (e) {
+                        console.error("Decryption error:", e);
+                        showAuthError("Incorrect password or corrupted data.");
+                        return;
+                    }
+                } else {
+                    showAuthError("A password is required to access your meal data.");
+                    return;
+                }
+            }
+
+            mealList.innerHTML = `
+                <div class="flex flex-col items-center justify-center pt-16">
+                    <div class="spinner"></div>
+                    <p class="mt-4 text-slate-500 dark:text-slate-400">Loading meal data...</p>
+                </div>`;
+
+            try {
+                const remoteData = await getData();
+                data = {
+                    rows: Array.isArray(remoteData.rows) ? remoteData.rows : [],
+                    types: Array.isArray(remoteData.types) ? remoteData.types : []
+                };
+                rerenderApp();
+            } catch (error) {
+                console.error("Failed to load initial data:", error);
+                mealList.innerHTML = `
+                    <div class="text-center py-10 px-4">
+                         <svg class="mx-auto h-12 w-12 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <h3 class="mt-2 text-lg font-medium text-slate-800 dark:text-slate-200">Failed to Load Data</h3>
+                        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Could not retrieve your meal records. Please check your internet connection and ensure the API key is configured correctly.</p>
+                    </div>`;
+            }
+        };
+
+        initializeApp();
+
+    });
+    </script>
+</body>
+</html>
+
