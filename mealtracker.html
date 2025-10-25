@@ -108,7 +108,12 @@
                     <form id="meal-form" class="w-full space-y-4">
                         <div>
                             <label for="meal-name" class="block text-sm font-medium text-slate-700 dark:text-slate-200">Name</label>
-                            <input id="meal-name" type="text" class="mt-1 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g. Scrambled Eggs" />
+                            <div class="relative">
+                                <input id="meal-name" type="text" class="mt-1 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g. Scrambled Eggs" autocomplete="off" />
+                                <div id="meal-suggestions" class="absolute z-10 w-full bg-white dark:bg-slate-700 rounded-md shadow-lg max-h-60 overflow-auto hidden mt-1 border border-slate-200 dark:border-slate-600">
+                                    <!-- Suggestions will be populated here -->
+                                </div>
+                            </div>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
@@ -183,6 +188,7 @@
         const mealDesc = document.getElementById('meal-desc');
         const mealTime = document.getElementById('meal-time');
         const mealType = document.getElementById('meal-type');
+        const mealSuggestions = document.getElementById('meal-suggestions');
         const saveBtn = document.getElementById('save-btn');
         const deleteBtn = document.getElementById('delete-btn');
         const cancelBtn = document.getElementById('cancel-btn');
@@ -231,6 +237,67 @@
                     <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">${message}</p>
                 </div>`;
         };
+
+        // --- SUGGESTION LOGIC ---
+        let sortedSuggestions = [];
+
+        const generateSuggestions = () => {
+            const nameStats = data.rows.reduce((acc, meal) => {
+                const name = meal.name.trim();
+                if (name) {
+                    if (!acc[name]) {
+                        acc[name] = { name: name, frequency: 0, lastUsed: new Date(0) };
+                    }
+                    acc[name].frequency++;
+                    const mealTime = new Date(meal.time);
+                    if (mealTime > acc[name].lastUsed) {
+                        acc[name].lastUsed = mealTime;
+                    }
+                }
+                return acc;
+            }, {});
+
+            sortedSuggestions = Object.values(nameStats).sort((a, b) => {
+                if (b.frequency !== a.frequency) {
+                    return b.frequency - a.frequency;
+                }
+                return b.lastUsed - a.lastUsed;
+            });
+        };
+
+        const renderSuggestions = (query) => {
+            const filtered = query
+                ? sortedSuggestions.filter(s => s.name.toLowerCase().includes(query.toLowerCase()))
+                : sortedSuggestions;
+
+            const topSuggestions = filtered.slice(0, 10);
+            
+            if (topSuggestions.length === 0) {
+                mealSuggestions.classList.add('hidden');
+                return;
+            }
+
+            mealSuggestions.innerHTML = '';
+            topSuggestions.forEach(suggestion => {
+                const item = document.createElement('div');
+                item.className = 'px-4 py-2 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-600';
+                item.textContent = suggestion.name;
+                item.addEventListener('mousedown', (e) => { // mousedown to fire before blur
+                    e.preventDefault();
+                    mealName.value = suggestion.name;
+                    mealSuggestions.classList.add('hidden');
+                });
+                mealSuggestions.appendChild(item);
+            });
+            mealSuggestions.classList.remove('hidden');
+        };
+
+        mealName.addEventListener('input', () => renderSuggestions(mealName.value));
+        mealName.addEventListener('focus', () => renderSuggestions(mealName.value));
+        mealName.addEventListener('blur', () => {
+            // Delay hiding to allow click event on suggestion to fire
+            setTimeout(() => mealSuggestions.classList.add('hidden'), 150);
+        });
 
         // --- RENDER FUNCTIONS ---
         const renderMeals = () => {
@@ -293,6 +360,7 @@
 
         const rerenderApp = () => {
             renderMeals();
+            generateSuggestions();
             document.getElementById("add-btn").classList.remove("hidden");
         };
 
