@@ -344,7 +344,7 @@
 
                 // Aggregate wallet changes and filter out zero-change wallets
                 const walletDeltas = tx.amts.reduce((acc, { wallet, amt }) => {
-                    if (!amt) return acc; // zero => no change
+                    if (amt === 0) return acc; // zero => no change
                     acc[wallet] = (acc[wallet] || 0) + amt;
                     return acc;
                 }, {});
