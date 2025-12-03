@@ -485,8 +485,8 @@
                     showToast('Each amount row must have a wallet name.');
                     return;
                 }
-                if (Number.isNaN(amt) || amtRaw.trim() === '') {
-                    showToast('Amounts must be valid numbers and cannot be empty.');
+                if (Number.isNaN(amt)) {
+                    showToast('Unable to convert ' + amtRaw + ' to a number.');
                     return;
                 }
                 amts.push({ wallet, amt });
@@ -568,6 +568,8 @@
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && !modal.classList.contains('invisible')) {
                 closeModal();
+            } else if (e.key === 'Enter' && !modal.classList.contains('invisible')) {
+                handleSave();
             }
         });
 
