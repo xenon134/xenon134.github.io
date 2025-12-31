@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Finance Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -146,15 +147,10 @@
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // --- JSONBin.io Configuration ---
-        const binId = '68eb75dc43b1c97be963caa5';
-        let apiKey = localStorage.getItem('jsonBinApiKey');
-        if (!apiKey) {
-            apiKey = prompt('Enter key: ');
-            if (apiKey) {
-                localStorage.setItem('jsonBinApiKey', apiKey);
-            }
-        }
+        // --- Supabase Configuration ---
+        const supabaseUrl = 'https://wytmkdjzsagjccqbzflr.supabase.co';
+        const supabaseKey = 'sb_publishable_h9zWKx6vVMBS0bNTt_3Xag_Y4eMVsfk';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
         // Simple assertions and validators
         const assert = (cond, msg) => { if (!cond) { alert(msg); throw new Error(msg); } };
@@ -165,53 +161,67 @@
             t && typeof t.name === 'string'
             && Array.isArray(t.amts) && t.amts.every(isValidAmount)
             && typeof t.time === 'string' && !Number.isNaN(new Date(t.time).getTime());
-        const validateTransactionsArray = (arr, where = 'data') => {
-            assert(Array.isArray(arr), `Invalid transactions in ${where}: expected an array.`);
-            arr.forEach((t, i) => assert(isValidTransaction(t), `Invalid transaction at index ${i} in ${where}.`));
-        };
 
-        // --- JSONBin.io API Functions ---
-        async function getData() {
-          assert(apiKey, 'API key is required to load data.');
-          const response = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
-            method: 'GET',
-            headers: { 'X-Master-Key': apiKey },
-          });
-          if (!response.ok) {
-            const txt = await response.text().catch(() => '');
-            alert(`Load failed: ${response.status} ${response.statusText}`);
-            throw new Error(`GET failed: ${response.status} ${txt}`);
-          }
-          const data = await response.json();
-          const record = data.record;
-          // Strictly validate shape; no silent fallback to []
-          if (Array.isArray(record)) {
-            validateTransactionsArray(record, 'record');
-            return { transactions: record };
-          }
-          assert(record && typeof record === 'object', 'Invalid backend record shape (not an object or array).');
-          assert(Array.isArray(record.transactions), 'Backend missing "transactions" array.');
-          validateTransactionsArray(record.transactions, 'record.transactions');
-          return { transactions: record.transactions };
+        // --- Database Functions ---
+        async function fetchTransactions() {
+            const { data, error } = await supabase
+                .from('transactions')
+                .select('*')
+                .order('time', { ascending: false });
+            
+            if (error) {
+                alert(`Load failed: ${error.message}`);
+                throw error;
+            }
+            
+            // Ensure amts is parsed if returned as a string
+            return data.map(tx => {
+                if (typeof tx.amts === 'string') {
+                    try {
+                        tx.amts = JSON.parse(tx.amts);
+                    } catch (e) {
+                        console.log(tx.amts);
+                        console.error("Failed to parse amts:", e);
+                        tx.amts = [];
+                    }
+                }
+                return tx;
+            });
         }
 
-        async function setData(jsonData) {
-          // Expect full object shape now: { transactions: [...] }; validate before PUT
-          assert(jsonData && Array.isArray(jsonData.transactions), 'Tried saving without a valid transactions array.');
-          validateTransactionsArray(jsonData.transactions, 'save payload');
-          const response = await fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-Master-Key': apiKey,
-            },
-            body: JSON.stringify(jsonData),
-          });
-          if (!response.ok) {
-            const txt = await response.text().catch(() => '');
-            alert(`Save failed: ${response.status} ${response.statusText}`);
-            throw new Error(`PUT failed: ${response.status} ${txt}`);
-          }
+        async function insertTransaction(tx) {
+            const { error } = await supabase
+                .from('transactions')
+                .insert([tx]);
+            
+            if (error) {
+                alert(`Save failed: ${error.message}`);
+                throw error;
+            }
+        }
+
+        async function updateTransaction(id, tx) {
+            const { error } = await supabase
+                .from('transactions')
+                .update(tx)
+                .eq('id', id);
+
+            if (error) {
+                alert(`Update failed: ${error.message}`);
+                throw error;
+            }
+        }
+
+        async function deleteTransaction(id) {
+            const { error } = await supabase
+                .from('transactions')
+                .delete()
+                .eq('id', id);
+
+            if (error) {
+                alert(`Delete failed: ${error.message}`);
+                throw error;
+            }
         }
 
         // --- STATE ---
@@ -546,31 +556,27 @@
             assert(txTime.value, 'Transaction time is required.');
             assert(!Number.isNaN(new Date(txTime.value).getTime()), 'Invalid transaction time.');
 
-            const updatedTx = {
+            const txPayload = {
                 name: txName.value.trim(),
                 desc: txDesc.value.trim(),
                 amts,
                 time: txTime.value
             };
 
-            // Validate the single transaction prior to merging
-            assert(isValidTransaction(updatedTx), 'Built transaction is invalid. Please check inputs.');
-
-            const tempTransactions = JSON.parse(JSON.stringify(transactions));
-            if (currentlyEditingIndex !== null) {
-                assert(currentlyEditingIndex >= 0 && currentlyEditingIndex < tempTransactions.length, 'Invalid transaction index during save.');
-                tempTransactions[currentlyEditingIndex] = updatedTx;
-            } else {
-                tempTransactions.unshift(updatedTx);
-            }
-
-            // Validate entire payload before saving
-            validateTransactionsArray(tempTransactions, 'pre-save');
+            // Validate the single transaction
+            assert(isValidTransaction(txPayload), 'Built transaction is invalid. Please check inputs.');
 
             setModalButtonsLoading(true);
             try {
-                await setData({ transactions: tempTransactions });
-                transactions = tempTransactions; // Commit change
+                if (currentlyEditingIndex !== null) {
+                    const id = transactions[currentlyEditingIndex].id;
+                    await updateTransaction(id, txPayload);
+                } else {
+                    await insertTransaction(txPayload);
+                }
+                
+                // Refresh data
+                transactions = await fetchTransactions();
                 rerenderApp();
                 closeModal();
             } catch (err) {
@@ -584,14 +590,13 @@
         const handleDelete = async () => {
             assert(dataLoaded, 'Data not loaded yet. Please wait and try again.');
             if (currentlyEditingIndex !== null) {
-                assert(currentlyEditingIndex >= 0 && currentlyEditingIndex < transactions.length, 'Invalid transaction index during delete.');
-                const tempTransactions = transactions.filter((_, index) => index !== currentlyEditingIndex);
-                validateTransactionsArray(tempTransactions, 'pre-delete');
-
+                const id = transactions[currentlyEditingIndex].id;
+                
                 setModalButtonsLoading(true);
                 try {
-                    await setData({ transactions: tempTransactions });
-                    transactions = tempTransactions; // Commit change
+                    await deleteTransaction(id);
+                    // Refresh data
+                    transactions = await fetchTransactions();
                     rerenderApp();
                     closeModal();
                 } catch (err) {
@@ -624,10 +629,6 @@
 
         // --- INITIALIZATION ---
         const initializeApp = async () => {
-            if (!apiKey) {
-                alert('API key is required to load data. Reload and provide a key.');
-                return;
-            }
             transactionList.innerHTML = `
                 <div class="flex flex-col items-center justify-center pt-16">
                     <div class="spinner"></div>
@@ -635,14 +636,12 @@
                 </div>`;
 
             try {
-                const data = await getData();
-                assert(data && Array.isArray(data.transactions), 'Loaded data missing transactions array.');
-                transactions = data.transactions;
+                transactions = await fetchTransactions();
                 dataLoaded = true;
                 rerenderApp();
             } catch (error) {
                 console.error("Failed to load initial data:", error);
-                alert('Failed to load data. See console for details.');
+                // alert('Failed to load data. See console for details.'); // Handled in fetchTransactions
                 balanceContainer.innerHTML = '';
                 transactionList.innerHTML = `
                     <div class="text-center py-10 px-4">
@@ -650,7 +649,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                         </svg>
                         <h3 class="mt-2 text-lg font-medium text-slate-800 dark:text-slate-200">Failed to Load Data</h3>
-                        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Could not retrieve your financial records. Please check your internet connection and ensure the API key in the script is configured correctly.</p>
+                        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Could not retrieve your financial records. Please check your internet connection.</p>
                     </div>`;
             }
         };
