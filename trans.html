@@ -373,64 +373,110 @@
                 return;
             }
             
-            sortedTransactions.forEach((tx) => {
-                const { datePart, timePart } = formatDate(tx.time);
-                const totalAmt = tx.amts.reduce((sum, item) => sum + item.amt, 0);
-                const isCredit = totalAmt >= 0;
+            // Group transactions by date
+            const groups = [];
+            sortedTransactions.forEach(tx => {
+                const { datePart } = formatDate(tx.time);
+                if (groups.length === 0 || groups[groups.length - 1].date !== datePart) {
+                    groups.push({ date: datePart, txs: [] });
+                }
+                groups[groups.length - 1].txs.push(tx);
+            });
 
-                // Aggregate wallet changes and filter out zero-change wallets
-                const walletDeltas = tx.amts.reduce((acc, { wallet, amt }) => {
-                    if (amt === 0) return acc; // zero => no change
-                    acc[wallet] = (acc[wallet] || 0) + amt;
-                    return acc;
-                }, {});
-                const changedWallets = Object.keys(walletDeltas).filter(w => walletDeltas[w] !== 0);
+            groups.forEach(groupData => {
+                const { date, txs } = groupData;
+                const [month, day] = date.split(' ');
+                const hasMultiple = txs.length > 1;
 
-                // Generate wallet details only for wallets that actually changed in this tx
-                const walletDetailsHtml = changedWallets.map(wallet => {
-                    const delta = walletDeltas[wallet];
-                    const newValue = (runningWalletBalances[wallet] ?? 0);
-                    const originalValue = newValue - delta;
-                    const sign = delta > 0 ? '+' : '-';
-                    return `
-                        <div class="flex justify-between items-baseline text-xs">
-                            <span class="text-slate-500 dark:text-slate-400">${wallet}</span>
-                            <span class="font-mono text-slate-600 dark:text-slate-300">₹${originalValue.toLocaleString('en-IN')} ${sign}${Math.abs(delta).toLocaleString('en-IN')} = ₹${newValue.toLocaleString('en-IN')}</span>
-                        </div>
-                    `;
-                }).join('');
+                const groupEl = document.createElement('div');
+                groupEl.className = 'flex gap-3 sm:gap-4 mb-6';
 
-                const row = document.createElement('div');
-                row.className = 'bg-white dark:bg-slate-800 rounded-xl shadow-md p-4 mb-4 flex flex-col cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-all duration-200';
-                const txIndex = transactions.findIndex(t => t === tx);
-                row.dataset.index = txIndex;
-
-                row.innerHTML = `
-                    <div class="flex items-center justify-between w-full">
-                        <div class="flex items-center gap-4">
-                            <div class="text-center w-12 flex-shrink-0" title="${timePart}">
-                                <div class="font-bold text-slate-800 dark:text-slate-200">${datePart.split(' ')[0]}</div>
-                                <div class="text-sm text-slate-600 dark:text-slate-400">${datePart.split(' ')[1]}</div>
-                            </div>
-                            <div>
-                                <p class="font-semibold text-slate-900 dark:text-white">${tx.name}</p>
-                                ${tx.desc ? `<p class="text-sm text-slate-500 dark:text-slate-400">${tx.desc}</p>` : ''}
-                            </div>
-                        </div>
-                        <div class="font-mono font-bold text-lg text-right ${isCredit ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}">
-                            ${Math.abs(totalAmt).toLocaleString('en-IN')}
-                        </div>
-                    </div>
-                    ${walletDetailsHtml ? `<div class="mt-3 pt-2 pl-16 border-t border-slate-200 dark:border-slate-700 space-y-1">${walletDetailsHtml}</div>` : ''}
-                `;
+                // Left Column: Date and Line
+                const leftCol = document.createElement('div');
+                leftCol.className = 'flex-shrink-0 w-12 sm:w-14 flex flex-col items-center';
                 
-                row.addEventListener('click', () => openModal(txIndex));
-                transactionList.appendChild(row);
+                const dateWrapper = document.createElement('div');
+                // sticky top-28 to clear the fixed header
+                dateWrapper.className = 'sticky top-28 bg-slate-100 dark:bg-slate-900 z-10 pb-2 text-center w-full';
+                dateWrapper.innerHTML = `
+                    <div class="text-xs sm:text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">${month}</div>
+                    <div class="text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-200 leading-none">${day}</div>
+                `;
+                leftCol.appendChild(dateWrapper);
 
-                // Update running balances for the next (older) transaction
-                tx.amts.forEach(item => {
-                    runningWalletBalances[item.wallet] -= item.amt;
+                if (hasMultiple) {
+                    const line = document.createElement('div');
+                    // flex-grow fills height, mb-10 stops it approx at middle of last card
+                    line.className = 'w-0.5 bg-slate-300 dark:bg-slate-700 flex-grow mb-10 rounded-full';
+                    leftCol.appendChild(line);
+                }
+                groupEl.appendChild(leftCol);
+
+                // Right Column: Transactions
+                const rightCol = document.createElement('div');
+                rightCol.className = 'flex-grow space-y-3 min-w-0';
+
+                txs.forEach(tx => {
+                    const { timePart } = formatDate(tx.time);
+                    const totalAmt = tx.amts.reduce((sum, item) => sum + item.amt, 0);
+                    const isCredit = totalAmt >= 0;
+
+                    // Aggregate wallet changes
+                    const walletDeltas = tx.amts.reduce((acc, { wallet, amt }) => {
+                        if (amt === 0) return acc;
+                        acc[wallet] = (acc[wallet] || 0) + amt;
+                        return acc;
+                    }, {});
+                    const changedWallets = Object.keys(walletDeltas).filter(w => walletDeltas[w] !== 0);
+
+                    const walletDetailsHtml = changedWallets.map(wallet => {
+                        const delta = walletDeltas[wallet];
+                        const newValue = (runningWalletBalances[wallet] ?? 0);
+                        const originalValue = newValue - delta;
+                        const sign = delta > 0 ? '+' : '-';
+                        return `
+                            <div class="flex justify-between items-baseline text-xs">
+                                <span class="text-slate-500 dark:text-slate-400">${wallet}</span>
+                                <span class="font-mono text-slate-600 dark:text-slate-300">₹${originalValue.toLocaleString('en-IN')} ${sign}${Math.abs(delta).toLocaleString('en-IN')} = ₹${newValue.toLocaleString('en-IN')}</span>
+                            </div>
+                        `;
+                    }).join('');
+
+                    const row = document.createElement('div');
+                    // Added 'group' class for hover effects
+                    row.className = 'group bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 flex flex-col cursor-pointer hover:shadow-md transition-all duration-200';
+                    const txIndex = transactions.findIndex(t => t === tx);
+                    row.dataset.index = txIndex;
+
+                    row.innerHTML = `
+                        <div class="flex items-center justify-between w-full">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="min-w-0">
+                                    <p class="font-semibold text-slate-900 dark:text-white truncate">${tx.name}</p>
+                                    ${tx.desc ? `<p class="text-sm text-slate-500 dark:text-slate-400 truncate">${tx.desc}</p>` : ''}
+                                </div>
+                            </div>
+                            <div class="flex flex-col items-end ml-2 flex-shrink-0">
+                                <div class="font-mono font-bold text-lg ${isCredit ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}">
+                                    ${Math.abs(totalAmt).toLocaleString('en-IN')}
+                                </div>
+                                <div class="text-xs text-slate-400 dark:text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200">${timePart}</div>
+                            </div>
+                        </div>
+                        ${walletDetailsHtml ? `<div class="mt-3 pt-2 border-t border-slate-100 dark:border-slate-700 space-y-1">${walletDetailsHtml}</div>` : ''}
+                    `;
+                    
+                    row.addEventListener('click', () => openModal(txIndex));
+                    rightCol.appendChild(row);
+
+                    // Update running balances for the next (older) transaction
+                    tx.amts.forEach(item => {
+                        runningWalletBalances[item.wallet] -= item.amt;
+                    });
                 });
+
+                groupEl.appendChild(rightCol);
+                transactionList.appendChild(groupEl);
             });
         };
 
