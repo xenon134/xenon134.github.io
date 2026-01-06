@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit History</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles for a polished look and feel */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        /* Custom scrollbar for a better dark mode experience */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background-color: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: #94a3b8;
+            border-radius: 10px;
+        }
+        .dark ::-webkit-scrollbar-track {
+            background-color: #1e293b;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background-color: #475569;
+        }
+
+        /* Modal transition */
+        #modal {
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+
+        /* Ensure fixed header has a backdrop blur for readability */
+        .header-backdrop {
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        /* Custom toast notification styling */
+        #toast {
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+            transform: translateY(-150%);
+        }
+        #toast.show {
+            transform: translateY(0);
+        }
+
+        /* Simple spinner for loading states */
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #09f;
+            animation: spin 1s ease infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .dark .spinner {
+            border-left-color: #38bdf8;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-200 antialiased">
+
+    <!-- Toast Notification for errors -->
+    <div id="toast" class="fixed top-5 right-5 bg-red-500 text-white py-2 px-4 rounded-lg shadow-lg z-50 opacity-0">
+        <p id="toast-message"></p>
+    </div>
+
+    <!-- Main Application Container -->
+    <div id="app" class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <!-- Header -->
+        <header id="header-bar" class="fixed top-0 left-0 right-0 z-10 bg-slate-100/80 dark:bg-slate-900/80 header-backdrop border-b border-slate-200 dark:border-slate-800">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+                <h1 class="text-xl font-bold text-slate-900 dark:text-white">Edit History</h1>
+                <a href="trans.html" class="text-sm font-medium text-blue-600 hover:text-blue-500 hover:underline dark:text-blue-400 dark:hover:text-blue-300 transition-colors">Back to Tracker</a>
+            </div>
+        </header>
+
+        <!-- Edits List -->
+        <main id="edit-list" class="pt-24 pb-12">
+            <!-- Edits will be dynamically inserted here -->
+        </main>
+
+        <!-- Modal for Edit Details/Revert -->
+        <div id="modal" class="fixed inset-0 bg-black/60 z-40 flex items-center justify-center p-4 invisible opacity-0">
+            <div id="modal-content" class="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-lg transform transition-transform duration-300 scale-95">
+                <div class="p-6">
+                    <h2 class="text-2xl font-bold mb-4 text-slate-900 dark:text-white">Edit Details</h2>
+                    <div id="modal-body" class="space-y-4 text-slate-700 dark:text-slate-300">
+                        <!-- Content injected here -->
+                    </div>
+                </div>
+                <div class="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 flex flex-col sm:flex-row-reverse gap-3 rounded-b-xl">
+                    <button id="revert-btn" class="w-full sm:w-auto sm:ml-3 inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 dark:ring-offset-slate-800 disabled:opacity-50">Revert</button>
+                    <button id="cancel-btn" class="w-full sm:w-auto mt-3 sm:mt-0 inline-flex justify-center rounded-md border border-slate-300 dark:border-slate-500 shadow-sm px-4 py-2 bg-white dark:bg-slate-600 text-base font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400 dark:ring-offset-slate-800">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- Supabase Configuration ---
+        const supabaseUrl = 'https://wytmkdjzsagjccqbzflr.supabase.co';
+        const supabaseKey = 'sb_publishable_h9zWKx6vVMBS0bNTt_3Xag_Y4eMVsfk';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        // --- STATE ---
+        let edits = [];
+        let currentlySelectedEdit = null;
+        let isLoading = false;
+
+        // --- DOM ELEMENTS ---
+        const editList = document.getElementById('edit-list');
+        const modal = document.getElementById('modal');
+        const modalContent = document.getElementById('modal-content');
+        const modalBody = document.getElementById('modal-body');
+        const revertBtn = document.getElementById('revert-btn');
+        const cancelBtn = document.getElementById('cancel-btn');
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toast-message');
+
+        // --- UTILITY FUNCTIONS ---
+        const showToast = (message) => {
+            toastMessage.textContent = message;
+            toast.classList.add('show', 'opacity-100');
+            setTimeout(() => {
+                toast.classList.remove('show', 'opacity-100');
+            }, 3000);
+        };
+
+        const formatDate = (dateString) => {
+            const date = new Date(dateString);
+            return {
+                full: date.toLocaleString(),
+                date: date.toLocaleDateString(),
+                time: date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+            };
+        };
+
+        // --- DATABASE FUNCTIONS ---
+        async function fetchEdits() {
+            isLoading = true;
+            renderList();
+            
+            // Fetch edits and join with transactions to get current name for 'create' operations
+            const { data, error } = await supabase
+                .from('edits')
+                .select('*, transactions (name)')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                showToast(`Failed to load edits: ${error.message}`);
+                isLoading = false;
+                renderList();
+                return;
+            }
+
+            edits = data.map(edit => {
+                if (typeof edit.amts === 'string') {
+                    try { edit.amts = JSON.parse(edit.amts); } 
+                    catch (e) { edit.amts = []; }
+                }
+                return edit;
+            });
+            
+            isLoading = false;
+            renderList();
+        }
+
+        async function revertTransaction(edit) {
+            revertBtn.disabled = true;
+            revertBtn.textContent = 'Reverting...';
+            
+            try {
+                const { operation, transaction_id, name, desc, time, amts } = edit;
+                
+                if (operation === 'create') {
+                    // Revert creation -> Delete the transaction
+                    const { error } = await supabase
+                        .from('transactions')
+                        .delete()
+                        .eq('id', transaction_id);
+                    if (error) throw error;
+
+                } else if (operation === 'modify') {
+                    // Revert modification -> Update back to previous values
+                    const { error } = await supabase
+                        .from('transactions')
+                        .update({ name, desc, time, amts })
+                        .eq('id', transaction_id);
+                    if (error) throw error;
+
+                } else if (operation === 'delete') {
+                    // Revert deletion -> Insert back (restore)
+                    // We attempt to restore with original ID if possible
+                    const { error } = await supabase
+                        .from('transactions')
+                        .insert([{ name, desc, time, amts }]); // id is auto-generated usually, omitting for safety unless critical
+                    if (error) throw error;
+                }
+
+                showToast('Revert successful!');
+                closeModal();
+                fetchEdits(); // Refresh list to see new edits generated by revert (if any)
+            } catch (err) {
+                console.error(err);
+                showToast(`Revert failed: ${err.message}`);
+            } finally {
+                revertBtn.disabled = false;
+                revertBtn.textContent = 'Revert';
+            }
+        }
+
+        // --- RENDER FUNCTIONS ---
+        const renderList = () => {
+            editList.innerHTML = '';
+
+            if (isLoading) {
+                editList.innerHTML = `
+                    <div class="flex flex-col items-center justify-center pt-10">
+                        <div class="spinner mb-4"></div>
+                        <p class="text-slate-500">Loading history...</p>
+                    </div>`;
+                return;
+            }
+
+            if (!edits || edits.length === 0) {
+                editList.innerHTML = `<p class="text-center text-slate-500 py-10">No edit history found.</p>`;
+                return;
+            }
+
+            edits.forEach((edit, index) => {
+                const { date, time } = formatDate(edit.created_at);
+                
+                let opColor = 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
+                if (edit.operation === 'create') opColor = 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
+                if (edit.operation === 'modify') opColor = 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
+                if (edit.operation === 'delete') opColor = 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
+
+                // Determine display name
+                // For create: use current transaction name if available (via join)
+                // For modify/delete: use the snapshot name stored in edit
+                let displayName = edit.name;
+                if (edit.operation === 'create' && edit.transactions && edit.transactions.name) {
+                    displayName = edit.transactions.name;
+                }
+
+                const row = document.createElement('div');
+                row.className = 'bg-white dark:bg-slate-800 rounded-xl shadow-sm p-4 mb-3 cursor-pointer hover:shadow-md transition-all border border-slate-200 dark:border-slate-700';
+                row.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wide ${opColor}">
+                                ${edit.operation}
+                            </span>
+                            <span class="text-sm text-slate-500 dark:text-slate-400 font-mono">${date} ${time}</span>
+                        </div>
+                        <div class="text-xs text-slate-400">ID: ${edit.id}</div>
+                    </div>
+                    <div class="mt-2">
+                         ${edit.operation === 'create' && !displayName
+                            ? `<p class="text-slate-600 dark:text-slate-400">Created transaction ID #${edit.transaction_id}</p>`
+                            : `<p class="font-medium text-slate-800 dark:text-slate-200">${displayName || 'Unknown Transaction'}</p>`
+                         }
+                    </div>
+                `;
+                row.addEventListener('click', () => openModal(edit));
+                editList.appendChild(row);
+            });
+        };
+
+        const openModal = (edit) => {
+            currentlySelectedEdit = edit;
+            const { full } = formatDate(edit.created_at);
+
+            let contentHTML = `
+                <div class="mb-4">
+                    <p class="text-sm text-slate-500 uppercase tracking-wider font-semibold">Operation</p>
+                    <p class="text-lg capitalize font-bold text-slate-800 dark:text-white">${edit.operation}</p>
+                </div>
+                <div class="mb-4">
+                    <p class="text-sm text-slate-500 uppercase tracking-wider font-semibold">Time of Edit</p>
+                    <p class="font-mono text-slate-700 dark:text-slate-300">${full}</p>
+                </div>
+            `;
+
+            if (edit.operation === 'create') {
+                const currentName = (edit.transactions && edit.transactions.name) ? edit.transactions.name : null;
+                contentHTML += `
+                     <div class="p-3 bg-slate-100 dark:bg-slate-700 rounded-lg">
+                        <p class="text-sm">This action created transaction ${currentName ? `<strong>${currentName}</strong>` : ''} (#${edit.transaction_id}).</p>
+                        <p class="text-sm font-semibold mt-1 text-red-600 dark:text-red-400">Revert will delete this transaction.</p>
+                     </div>
+                `;
+            } else {
+                // For Modify and Delete, display the PREVIOUS values stored in the edit
+                contentHTML += `
+                    <div class="mb-2">
+                        <p class="text-sm text-slate-500 uppercase tracking-wider font-semibold mb-1">Previous Data (Stored in Edit)</p>
+                        <div class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-3 text-sm space-y-1">
+                            <p><span class="text-slate-500">Name:</span> <span class="font-medium">${edit.name}</span></p>
+                            <p><span class="text-slate-500">Desc:</span> <span>${edit.desc || '-'}</span></p>
+                            <p><span class="text-slate-500">Time:</span> <span class="font-mono">${edit.time ? new Date(edit.time).toLocaleString() : '-'}</span></p>
+                            <div class="mt-2 text-xs">
+                                <span class="text-slate-500 block mb-1">Amounts:</span>
+                                ${edit.amts && edit.amts.length > 0 
+                                    ? edit.amts.map(a => `<span class="inline-block bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded mr-1">${a.wallet}: ${a.amt}</span>`).join('') 
+                                    : '-'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                if (edit.operation === 'modify') {
+                    contentHTML += `<p class="text-sm text-red-600 dark:text-red-400 mt-2 font-medium">Revert will restore these previous values to Transaction #${edit.transaction_id}.</p>`;
+                } else if (edit.operation === 'delete') {
+                    contentHTML += `<p class="text-sm text-red-600 dark:text-red-400 mt-2 font-medium">Revert will re-create this transaction with the values above.</p>`;
+                }
+            }
+
+            modalBody.innerHTML = contentHTML;
+            modal.classList.remove('invisible', 'opacity-0');
+            modalContent.classList.remove('scale-95');
+        };
+
+        const closeModal = () => {
+            modal.classList.add('invisible', 'opacity-0');
+            modalContent.classList.add('scale-95');
+            currentlySelectedEdit = null;
+        };
+
+        // --- EVENTS ---
+        revertBtn.addEventListener('click', () => {
+            if (currentlySelectedEdit) revertTransaction(currentlySelectedEdit);
+        });
+        cancelBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+           if (e.target === modal) closeModal();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !modal.classList.contains('invisible')) {
+                closeModal();
+            }
+        });
+
+        // --- INIT ---
+        fetchEdits();
+    });
+    </script>
+</body>
+</html>
