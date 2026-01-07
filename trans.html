@@ -505,7 +505,17 @@
                 const tx = transactions[index];
                 txName.value = tx.name || '';
                 txDesc.value = tx.desc || '';
-                txTime.value = tx.time ? tx.time.slice(0,16) : getCurrentDateTime();
+                
+                // Convert stored UTC time to IST for input display
+                if (tx.time) {
+                    const utcDate = new Date(tx.time);
+                    // Add 5.5 hours (IST offset) to shift UTC timestamp so ISO string components match IST
+                    const istDate = new Date(utcDate.getTime() + (5.5 * 60 * 60 * 1000));
+                    txTime.value = istDate.toISOString().slice(0, 16);
+                } else {
+                    txTime.value = getCurrentDateTime();
+                }
+
                 populateAmtList(tx.amts || [{ wallet: '', amt: 0 }]);
                 deleteBtn.style.display = 'inline-flex';
             } else {
@@ -547,11 +557,14 @@
             if(!txTime.value) { showToast('Transaction time is required.'); return; }
             if(Number.isNaN(new Date(txTime.value).getTime())) { showToast('Invalid transaction time.'); return; }
 
+            // Append IST offset (+05:30) explicitly so DB handles it correctly
+            const istTime = `${txTime.value}:00+05:30`;
+
             const txPayload = {
                 name: txName.value.trim(),
                 desc: txDesc.value.trim(),
                 amts,
-                time: txTime.value
+                time: istTime
             };
 
             assert(isValidTransaction(txPayload), 'Built transaction is invalid.');
@@ -641,6 +654,11 @@
             if (e.key === 'Escape' && !modal.classList.contains('invisible')) {
                 closeModal();
             } else if (e.key === 'Enter' && !modal.classList.contains('invisible')) {
+                handleSave();
+            } else if ((e.key === 'n' || e.key === '+') && modal.classList.contains('invisible')) {
+                openModal();
+            } else if (e.ctrlKey && e.key === 's' && !modal.classList.contains('invisible')) {
+                e.preventDefault();
                 handleSave();
             }
         });
