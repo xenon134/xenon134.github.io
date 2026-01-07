@@ -156,10 +156,10 @@
             isLoading = true;
             renderList();
             
-            // Fetch edits and join with transactions to get current name for 'create' operations
+            // Fetch edits without join (Foreign Key removed)
             const { data, error } = await supabase
                 .from('edits')
-                .select('*, transactions (name)')
+                .select('*')
                 .order('created_at', { ascending: false });
 
             if (error) {
@@ -169,11 +169,34 @@
                 return;
             }
 
+            // Manually fetch transaction names for 'create' operations
+            const createTxIds = data
+                .filter(e => e.operation === 'create')
+                .map(e => e.transaction_id);
+
+            const txMap = {};
+            if (createTxIds.length > 0) {
+                const { data: txData } = await supabase
+                    .from('transactions')
+                    .select('id, name')
+                    .in('id', createTxIds);
+                
+                if (txData) {
+                    txData.forEach(t => { txMap[t.id] = t.name; });
+                }
+            }
+
             edits = data.map(edit => {
                 if (typeof edit.amts === 'string') {
                     try { edit.amts = JSON.parse(edit.amts); } 
                     catch (e) { edit.amts = []; }
                 }
+
+                // Simulate join structure expected by render functions
+                if (edit.operation === 'create' && txMap[edit.transaction_id]) {
+                    edit.transactions = { name: txMap[edit.transaction_id] };
+                }
+
                 return edit;
             });
             

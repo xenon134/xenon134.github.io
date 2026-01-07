@@ -20,7 +20,6 @@ table public.edits (
   amts jsonb null,
   operation public.edit_operation not null,
   constraint edits_pkey primary key (id),
-  constraint edits_transaction_id_fkey foreign KEY (transaction_id) references transactions (id),
 ) TABLESPACE pg_default;
 
 public.edit_operation is an enum (`TYPE edit_operation AS ENUM ('create', 'modify', 'delete')`)
