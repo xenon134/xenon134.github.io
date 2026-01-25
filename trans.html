@@ -647,9 +647,16 @@
         saveBtn.addEventListener('click', handleSave);
         deleteBtn.addEventListener('click', handleDelete);
         cancelBtn.addEventListener('click', closeModal);
-       modal.addEventListener('click', (e) => {
-           if (e.target === modal) closeModal();
-       });
+        // Track mousedown and mouseup for proper click outside
+        let mouseDownOutside = false;
+        modal.addEventListener('mousedown', (e) => {
+            mouseDownOutside = (e.target === modal);
+        });
+        modal.addEventListener('mouseup', (e) => {
+            if (e.target === modal && mouseDownOutside) {
+                closeModal();
+            }
+        });
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && !modal.classList.contains('invisible')) {
                 closeModal();
