@@ -80,19 +80,55 @@
 </head>
 <body class="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-200 antialiased">
 
+    <!-- Splash Screen (shown by default) -->
+    <div id="splash-screen" class="fixed inset-0 bg-slate-100 dark:bg-slate-900 z-[60] flex flex-col items-center justify-center transition-opacity duration-300">
+        <div class="spinner"></div>
+        <p class="mt-4 text-slate-500 dark:text-slate-400 font-medium animate-pulse">Loading financial data...</p>
+    </div>
+
+    <!-- Login/Signup Modal -->
+    <div id="auth-modal" class="fixed inset-0 bg-slate-200 dark:bg-slate-900 z-50 flex items-center justify-center p-4 hidden">
+        <div class="w-full max-w-sm">
+            <div class="bg-white dark:bg-slate-800 rounded-xl shadow-2xl p-6 sm:p-8">
+                <h2 id="auth-title" class="text-2xl font-bold text-center mb-1 text-slate-900 dark:text-white">Login</h2>
+                <p class="text-center text-sm text-slate-500 dark:text-slate-400 mb-6">Access your finance tracker</p>
+                <div id="auth-error" class="hidden bg-red-100 dark:bg-red-900/30 border border-red-400 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg relative mb-4 text-sm" role="alert">
+                    <span id="auth-error-message"></span>
+                </div>
+                <form id="auth-form">
+                    <div class="mb-4">
+                        <label for="auth-username" class="block text-sm font-medium text-slate-700 dark:text-slate-200">Username</label>
+                        <input id="auth-username" type="text" required class="mt-1 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                    </div>
+                    <div class="mb-6">
+                        <label for="auth-password" class="block text-sm font-medium text-slate-700 dark:text-slate-200">Password</label>
+                        <input id="auth-password" type="password" required class="mt-1 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                    </div>
+                    <div class="flex flex-col gap-3">
+                        <button id="auth-login-btn" type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:ring-offset-slate-800 disabled:opacity-50">Login</button>
+                        <button id="auth-signup-btn" type="button" class="w-full inline-flex justify-center rounded-md border border-slate-300 dark:border-slate-500 shadow-sm px-4 py-2 bg-white dark:bg-slate-600 text-base font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400 dark:ring-offset-slate-800">Sign Up</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notification for errors -->
     <div id="toast" class="fixed top-5 right-5 bg-red-500 text-white py-2 px-4 rounded-lg shadow-lg z-50 opacity-0">
         <p id="toast-message"></p>
     </div>
 
     <!-- Main Application Container -->
-    <div id="app" class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div id="app" class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 invisible">
 
         <!-- Header: Fixed Balance Bar -->
         <header id="balance-bar" class="fixed top-0 left-0 right-0 z-10 bg-slate-100/80 dark:bg-slate-900/80 header-backdrop">
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-                <h1 class="text-xl font-bold text-slate-900 dark:text-white mb-2">My Finances</h1>
-                <div id="balances" class="flex flex-wrap gap-x-4 gap-y-2 text-sm sm:text-base">
+                <div class="flex justify-between items-center">
+                    <h1 class="text-xl font-bold text-slate-900 dark:text-white">My Finances</h1>
+                    <button id="logout-btn" class="text-sm text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">Logout</button>
+                </div>
+                <div id="balances" class="flex flex-wrap gap-x-4 gap-y-2 text-sm sm:text-base mt-2">
                     <!-- Balances will be dynamically inserted here -->
                 </div>
             </div>
@@ -238,6 +274,18 @@
         let isDirty = false;
         
         // --- DOM ELEMENTS ---
+        const splashScreen = document.getElementById('splash-screen');
+        const authModal = document.getElementById('auth-modal');
+        const authForm = document.getElementById('auth-form');
+        const authUsername = document.getElementById('auth-username');
+        const authPassword = document.getElementById('auth-password');
+        const authLoginBtn = document.getElementById('auth-login-btn');
+        const authSignupBtn = document.getElementById('auth-signup-btn');
+        const authError = document.getElementById('auth-error');
+        const authErrorMessage = document.getElementById('auth-error-message');
+        const logoutBtn = document.getElementById('logout-btn');
+        const appContainer = document.getElementById('app');
+
         const balanceContainer = document.getElementById('balances');
         const transactionList = document.getElementById('transaction-list');
         const addBtn = document.getElementById('add-btn');
@@ -256,6 +304,82 @@
         const cancelBtn = document.getElementById('cancel-btn');
         const toast = document.getElementById('toast');
         const toastMessage = document.getElementById('toast-message');
+
+        // --- AUTHENTICATION ---
+        const DUMMY_DOMAIN = 'dummy.com';
+
+        const showAuthError = (message) => {
+            authErrorMessage.textContent = message;
+            authError.classList.remove('hidden');
+        };
+
+        const hideAuthError = () => {
+            authError.classList.add('hidden');
+        };
+
+        const handleAuth = async (isSignUp = false) => {
+            hideAuthError();
+            const username = authUsername.value.trim();
+            const password = authPassword.value;
+            if (!username || !password) {
+                showAuthError('Username and password are required.');
+                return;
+            }
+            // if (password.length < 6) {
+            //     showAuthError('Password must be at least 6 characters long.');
+            //     return;
+            // }
+
+            const email = `${username.toLowerCase()}@${DUMMY_DOMAIN}`;
+            authLoginBtn.disabled = true;
+            authSignupBtn.disabled = true;
+            authLoginBtn.textContent = isSignUp ? 'Signing up...' : 'Logging in...';
+
+            const { error } = isSignUp
+                ? await supabase.auth.signUp({ email, password })
+                : await supabase.auth.signInWithPassword({ email, password });
+
+            if (error) {
+                showAuthError(error.message);
+                authLoginBtn.disabled = false;
+                authSignupBtn.disabled = false;
+                authLoginBtn.textContent = 'Login';
+            } else {
+                // Success is handled by onAuthStateChange
+            }
+        };
+
+        authForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            handleAuth(false); // Login
+        });
+
+        authSignupBtn.addEventListener('click', () => {
+            handleAuth(true); // Sign up
+        });
+
+        logoutBtn.addEventListener('click', async () => {
+            await supabase.auth.signOut();
+            // Auth state change will handle UI
+        });
+
+        supabase.auth.onAuthStateChange((event, session) => {
+            if (session) {
+                // User is logged in
+                authModal.classList.add('hidden');
+                appContainer.classList.remove('invisible');
+                initializeApp();
+            } else {
+                // User is logged out
+                splashScreen.classList.add('hidden'); // Immediate hide for login screen
+                authModal.classList.remove('hidden');
+                appContainer.classList.add('invisible');
+                // Reset state
+                transactions = [];
+                dataLoaded = false;
+                rerenderApp();
+            }
+        });
 
         // --- UTILITY FUNCTIONS ---
         const formatDate = (dateString) => {
@@ -490,7 +614,9 @@
         const rerenderApp = () => {
             renderBalances();
             renderTransactions();
-            document.getElementById("add-btn").classList.remove("hidden");
+            if (dataLoaded) {
+                document.getElementById("add-btn").classList.remove("hidden");
+            }
         };
 
         // --- MODAL LOGIC ---
@@ -672,10 +798,16 @@
 
         // --- INITIALIZATION ---
         const initializeApp = async () => {
+            // Don't re-initialize if data is already loaded for the current session
+            if (dataLoaded) {
+                 splashScreen.classList.add('hidden');
+                 return;
+            }
+
             transactionList.innerHTML = `
                 <div class="flex flex-col items-center justify-center pt-16">
                     <div class="spinner"></div>
-                    <p class="mt-4 text-slate-500 dark:text-slate-400">Loading financial data...</p>
+                    <p class="mt-4 text-slate-500 dark:text-slate-400 font-medium animate-pulse">Loading financial data...</p>
                 </div>`;
 
             try {
@@ -694,10 +826,14 @@
                         <h3 class="mt-2 text-lg font-medium text-slate-800 dark:text-slate-200">Failed to Load Data</h3>
                         <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Could not retrieve your financial records. Please check your internet connection.</p>
                     </div>`;
+            } finally {
+                // Fade out splash screen
+                splashScreen.classList.add('opacity-0', 'pointer-events-none');
+                setTimeout(() => splashScreen.classList.add('hidden'), 300);
             }
         };
 
-        initializeApp();
+        // The onAuthStateChange listener will call initializeApp() on login.
 
     });
     </script>

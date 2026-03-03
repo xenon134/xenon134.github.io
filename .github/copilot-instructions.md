@@ -7,6 +7,7 @@ table public.transactions (
   "desc" text not null,
   time timestamp with time zone not null,
   amts jsonb not null,
+  user_id uuid not null,
   constraint transactions_pkey primary key (id),
 ) TABLESPACE pg_default;
 
@@ -19,6 +20,7 @@ table public.edits (
   time timestamp with time zone null,
   amts jsonb null,
   operation public.edit_operation not null,
+  user_id uuid not null,
   constraint edits_pkey primary key (id),
 ) TABLESPACE pg_default;
 
@@ -27,3 +29,7 @@ public.edit_operation is an enum (`TYPE edit_operation AS ENUM ('create', 'modif
 In public.edits, for delete and modify, name, desc, time, amts are the previous values. The purpose of this table is to have a record of edits and a way to reverse said edit, which is why we are storing the *previous* value. So e.g. if a modification is done, the values *before* the modification should be stored. For modify and create, the transaction_id serves as a pointer to the modified row. For delete, transaction_id will simply hold the id of the row that was deleted.
 
 For the amts field in both tables, it is a jsonb object which stores the wallets (text) and the corresponding amounts (numeric). This is to allow for multi-wallet transactions. E.g. a transaction could have amts = [ { "amt": -235, "wallet": "UPI" }, { "amt": 200, "wallet": "Cash" } ] to indicate that 235 was debited from UPI and 200 was credited to Cash.
+
+Both `transactions` and `edits` tables include a `user_id` column (UUID) referencing `auth.users(id)`. Row Level Security (RLS) is enabled on both tables, enforcing policies that restrict users to managing only their own data.
+
+Authentication is strictly username/password based in the UI. Internally, the frontend appends `@dummy.com` to the username to construct a dummy email address required by Supabase's authentication provider.
