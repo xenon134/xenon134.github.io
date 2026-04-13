@@ -73,6 +73,12 @@
 </head>
 <body class="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-200 antialiased">
 
+    <!-- Splash Screen (shown by default) -->
+    <div id="splash-screen" class="fixed inset-0 bg-slate-100 dark:bg-slate-900 z-[60] flex flex-col items-center justify-center transition-opacity duration-300">
+        <div class="spinner"></div>
+        <p class="mt-4 text-slate-500 dark:text-slate-400 font-medium animate-pulse">Verifying access...</p>
+    </div>
+
     <!-- Toast Notification for errors -->
     <div id="toast" class="fixed top-5 right-5 bg-red-500 text-white py-2 px-4 rounded-lg shadow-lg z-50 opacity-0">
         <p id="toast-message"></p>
@@ -122,8 +128,10 @@
         let edits = [];
         let currentlySelectedEdit = null;
         let isLoading = false;
+        let dataLoaded = false; // Track if initial load is done
 
         // --- DOM ELEMENTS ---
+        const splashScreen = document.getElementById('splash-screen');
         const editList = document.getElementById('edit-list');
         const modal = document.getElementById('modal');
         const modalContent = document.getElementById('modal-content');
@@ -132,6 +140,24 @@
         const cancelBtn = document.getElementById('cancel-btn');
         const toast = document.getElementById('toast');
         const toastMessage = document.getElementById('toast-message');
+
+        // --- AUTH & INIT ---
+        supabase.auth.onAuthStateChange((event, session) => {
+            if (session) {
+                // User is logged in, proceed to load data
+                if (!dataLoaded) {
+                    fetchEdits().finally(() => {
+                        // Fade out splash screen
+                        splashScreen.classList.add('opacity-0', 'pointer-events-none');
+                        setTimeout(() => splashScreen.classList.add('hidden'), 300);
+                        dataLoaded = true;
+                    });
+                }
+            } else {
+                // User is not logged in, redirect to main page (login)
+                window.location.href = 'trans.html';
+            }
+        });
 
         // --- UTILITY FUNCTIONS ---
         const showToast = (message) => {

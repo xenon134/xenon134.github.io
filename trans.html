@@ -177,6 +177,11 @@
                                 <!-- amount rows injected here -->
                             </div>
                         </div>
+
+                        <div class="mb-3 flex items-center gap-2">
+                            <input id="tx-balanced" type="checkbox" class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 focus:ring-blue-500 bg-white dark:bg-slate-900">
+                            <label for="tx-balanced" class="text-sm font-medium text-slate-700 dark:text-slate-200">Balanced</label>
+                        </div>
                     </form>
                 </div>
                 <div class="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 flex flex-col sm:flex-row-reverse gap-3 rounded-b-xl">
@@ -297,6 +302,7 @@
         const txName = document.getElementById('tx-name');
         const txDesc = document.getElementById('tx-desc');
         const txTime = document.getElementById('tx-time');
+        const txBalanced = document.getElementById('tx-balanced');
         const amtList = document.getElementById('amt-list');
         const addAmtBtn = document.getElementById('add-amt');
         const saveBtn = document.getElementById('save-btn');
@@ -592,7 +598,15 @@
                             ${Math.abs(totalAmt).toLocaleString('en-IN')}
                         </div>
                     </div>
-                    ${walletDetailsHtml ? `<div class="mt-3 pt-2 pl-16 border-t border-slate-200 dark:border-slate-700 space-y-1">${walletDetailsHtml}</div>` : ''}
+                    ${walletDetailsHtml ? `
+                    <div class="mt-3 pt-2 border-t border-slate-200 dark:border-slate-700 flex items-start">
+                        <div class="w-12 flex-shrink-0 flex justify-center mr-4 mt-0.5">
+                            ${tx.balanced ? `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 dark:text-green-400" fill="currentColor" version="1.1" viewBox="0 0 20 15" xmlns="http://www.w3.org/2000/svg"><path d="m16.707 1.8882a1 1 0 0 1 0 1.414l-8 8a1 1 0 0 1-1.414 0l-4-4a1 1 0 0 1 1.414-1.414l3.293 3.293 7.293-7.293a1 1 0 0 1 1.414 0z" clip-rule="evenodd" fill-rule="evenodd"/></svg>` : ''}
+                        </div>
+                        <div class="flex-1 space-y-1">
+                            ${walletDetailsHtml}
+                        </div>
+                    </div>` : ''}
                 `;
                 
                 // Only allow click (edit) if not pending
@@ -631,6 +645,7 @@
                 const tx = transactions[index];
                 txName.value = tx.name || '';
                 txDesc.value = tx.desc || '';
+                txBalanced.checked = tx.balanced || false;
                 
                 // Convert stored UTC time to IST for input display
                 if (tx.time) {
@@ -648,6 +663,7 @@
                 modalTitle.textContent = 'Add New Transaction';
                 txName.value = '';
                 txDesc.value = '';
+                txBalanced.checked = false;
                 txTime.value = getCurrentDateTime();
                 populateAmtList([{ wallet: 'UPI', amt: 0 }, { wallet: 'Cash', amt: 0 }]);
                 deleteBtn.style.display = 'none';
@@ -689,6 +705,7 @@
             const txPayload = {
                 name: txName.value.trim(),
                 desc: txDesc.value.trim(),
+                balanced: txBalanced.checked,
                 amts,
                 time: istTime
             };
