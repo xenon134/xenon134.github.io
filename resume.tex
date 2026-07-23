@@ -1,0 +1,197 @@
+\documentclass[letterpaper,9.5pt]{article}
+
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Margins
+\addtolength{\oddsidemargin}{-0.375in}
+\addtolength{\evensidemargin}{-0.375in}
+\addtolength{\textwidth}{1in}
+\addtolength{\topmargin}{-.5in}
+\addtolength{\textheight}{1in}
+
+\urlstyle{rm}
+\raggedright
+\raggedbottom
+% Set the horizontal space between columns in tables
+\setlength{\tabcolsep}{6pt} 
+
+% Section formatting configuration
+\titleformat{\section}{
+  \vspace{-3pt}\scshape\raggedright\large
+}{}{0em}{}[\color{black}\titlerule \vspace{-5pt}]
+
+% Commands
+\newcommand{\resumeItem}[2]{
+  \item\small{\textbf{#1}: #2 \vspace{-2pt}}
+}
+
+\newcommand{\resumeSubheading}[4]{
+  \vspace{-1pt}\item
+  \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+    \textbf{#1} & #2 \\
+    \textit{\small#3} & \textit{\small #4} \\
+  \end{tabular*}\vspace{-5pt}
+}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=*]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
+
+\setlength{\footskip}{3.7pt}
+\begin{document}
+
+%----------HEADING-----------------
+\begin{tabular*}{\textwidth}{l@{\extracolsep{\fill}}r}
+  \textbf{{\LARGE Timothy Utsab Bandyopadhyay}} & Email: timothy.utsab@gmail.com \\
+  {\Large Full-Stack Developer \& Researcher} & Mobile: +91 8336 086 014 \\
+  LinkedIn: linkedin.com/in/timothy-utsab & Kolkata, West Bengal \\
+  GitHub: xenon134.github.io
+\end{tabular*}
+
+%-----------EDUCATION-----------------
+\section{Education}
+\resumeSubHeadingListStart
+  \resumeSubheading
+    {RCC Institute of Information Technology}{Kolkata, West Bengal}
+    {Bachelor of Technology: Computer Science Engineering (CGPA: 7.6)}{2023 -- 2027}
+  \resumeSubheading
+    {St. Stephen's School}{Kolkata, West Bengal}
+    {CISCE Board - Science (89\%)}{July 2021 -- Aug 2023}
+\resumeSubHeadingListEnd
+
+%-----------TECHNICAL SKILLS-----------------
+\section{Technical Skills}
+\resumeSubHeadingListStart
+  \resumeItem{Languages}{Python (Advanced), Java (Advanced), C/C++, PHP, JavaScript, C\#, Bash/Batch, HTML/CSS}
+  \resumeItem{Frameworks \& Libraries}{Django, Flask, TensorFlow, Selenium, React}
+  \resumeItem{Tools \& Platforms}{Linux (Ubuntu, Debian, Kali), Git, GitHub, Physical Computing}
+  \resumeItem{Core Concepts}{Computer Vision, Web Scraping, Socket Networking, Asynchronous Programming}
+\resumeSubHeadingListEnd
+
+%-----------PROFESSIONAL EXPERIENCE-----------------
+\section{Professional Experience}
+
+\resumeSubHeadingListStart
+  \resumeSubheading
+    {DiagnoEasy Healthtech}{Kolkata, India}
+    {Live Project Intern}{Aug 2025 -- Apr 2026}
+  \resumeItemListStart
+    \resumeItem{Production Integration}{Collaborating directly with founders to integrate a winning innovation prototype into the existing production technology stack}
+    \resumeItem{AI-Powered Prescription Analysis}{Integrated my award-winning AI-powered prescription analysis feature into the website and Patient app, enhancing diagnostic capabilities.}
+    \resumeItem{Nursing Assistance App}{We developed the proprietary nursing assistance app, providing comprehensive support for healthcare professionals.}
+  \resumeItemListEnd
+  
+  \resumeSubheading
+    {Indian Institute of Technology (IIT Bombay)}{Mumbai, India}
+    {Research Assistant}{July 2024}
+  \resumeItemListStart
+    \resumeItem{Computer Vision}{Developed Python-based computer vision algorithms for Serpenoid robots designed for unmanned lunar and martial exploration.}
+    \resumeItem{Robotics Control}{Implemented control logic and sensor data processing to enhance autonomous navigation capabilities.}
+  \resumeItemListEnd
+\resumeSubHeadingListEnd
+
+%-----------PROJECTS-----------------
+\section{Projects}
+  \resumeSubHeadingListStart
+
+    \resumeSubheading
+      {Waffle Imager}{C++17, Qt (5/6), CMake}
+      {High-Performance Media Viewer}{}
+      \resumeItemListStart
+        \item \small{A high-performance desktop image viewer, improving rendering performance and UI responsiveness for large media files.}
+        \item \small{Implemented a dynamic "zoom-to-cursor", calculating viewport-anchored math, and smooth "drag-to-pan" mouse interactions.}
+        \item \small{\textbf{Smart Format Proxying \& Caching:} Designed a fallback rendering pipeline that detects unsupported formats (HEIC, AVIF, JP2), invokes external tools asynchronously, and caches intermediate PNGs using hashing for immediate subsequent loads.}
+        \item \small{Localized environment configurations, automatically resuming application states and user settings upon load.}
+        \item \small{\textbf{Modern Build Pipeline:} Configured multi-platform build systems via CMakeLists targeting MSVC and vcpkg toolchains, linking Qt dependencies.}
+        \item \small{\textbf{Links:} \href{https://github.com/xenon134/waffle}{GitHub Repository}}
+      \resumeItemListEnd
+
+    \resumeSubheading
+      {StudyAlly}{React, Vite, Node.js, Firebase, Google Gemini}
+      {AI-Powered Full-Stack Application}{}
+      \resumeItemListStart
+        \item \small{Built a monolithic full-stack application on Vercel utilizing Serverless Functions for backend API routing.}
+        \item \small{Architected a pluggable AI provider system integrating Google Gemini 2.5 Flash with multimodal capabilities to process user-uploaded PDF documents and autonomously generate customized prediction exams and dynamic N-day study schedules.}
+        \item \small{Engineered robust serverless endpoints by utilizing constrained decoding, eliminating unreliable prompt-based string parsing.}
+        \item \small{Developed a high-fidelity design system featuring custom animations, glassmorphism UI panes, and dynamic mouse-tracking spotlight effects.}
+        \item \small{Implemented secure authentication flows utilizing Firebase Auth (Email/Password and Google OAuth) with protected React Router pathways and persistent token-based session management.}
+        \item \small{\textbf{Links:} \href{https://github.com/AugustWat/river}{GitHub Repository}}
+      \resumeItemListEnd
+
+    \resumeSubheading
+      {Prescription Analysis Integration}{AI SDK, OCR, Node.js, MongoDB, React Native}
+      {Clinical Workflow Automation}{}
+      \resumeItemListStart
+        \item \small{Automated prescription analysis system using Generative AI, allowing patients to seamlessly upload handwritten or digital prescriptions (Images/PDFs) for instant data extraction.}
+        \item \small{Reliable parsing pipeline that accurately identifies patient demographics, clinical complaints, diagnoses, medication dosages, and recommended lab tests.}
+        \item \small{Real-time validation algorithm cross-references AI-extracted medication names against internal pharmacy databases, streamlining inventory checks.}
+        \item \small{Includes a secure review dashboard enabling doctors to review AI predictions, manually override inaccuracies, and seamlessly merge corrections with system data.}
+      \resumeItemListEnd
+
+    \resumeSubheading
+      {Nursing App}{TypeScript, React Native, Node.js}
+      {Proprietary Clinical Workflow Mobile Application}{}
+      \resumeItemListStart
+        \item \small{Developed a proprietary clinical workflow application in TypeScript using React Native \& Node.js storage.}
+        \item \small{Integrated tightly with underlying native OS, including a splash screen while React Native itself loads.}
+        \item \small{Used i18next for localization to adapt the application to Indian languages.}
+        \item \small{Integrated Maps and auto-updating Geolocation services.}
+        \item \small{Smartly generates and caches document thumbnails to optimize system usage.}
+      \resumeItemListEnd
+
+    \resumeSubheading
+      {Reencode-Antelope}{Python, FastAPI, FFmpeg, WebSockets, xterm.js}
+      {Real-Time Job Orchestration Web App}{}
+      \resumeItemListStart
+        \item \small{Real-time job orchestration web application to manage and execute heavily parallelized video transcoding workloads.}
+        \item \small{Live interactive frontend utilizing xterm.js, streaming complex, multi-terminal console output directly to the browser via WebSockets.}
+        \item \small{Designed a concurrent backend system using Python's asyncio and winpty to spawn concurrent pseudo-terminals with two-way terminal control.}
+        \item \small{Implemented a custom WebSocket messaging protocol to efficiently multiplex log data and metadata between the server and the multi-terminal UI.}
+        \item \small{\textbf{Links:} \href{https://github.com/xenon134/antelope/}{GitHub Repository}}
+      \resumeItemListEnd
+
+  \resumeSubHeadingListEnd
+
+%-----------LEADERSHIP & ACHIEVEMENTS-----------------
+\section{Leadership \& Honors}
+\resumeSubHeadingListStart
+  \resumeSubheading
+    {Innovision 2025 (RCC Institute of Information Technology)}{Kolkata}
+    {Event Lead - Capture The Flag (CTF)}{2025}
+  \resumeItemListStart
+    \resumeItem{Event Management}{Led a team to design and organize a CTF cybersecurity competition with over 200 participants.}
+    \resumeItem{Curriculum Design}{Designed challenges and technical infrastructure for the competition.}
+  \resumeItemListEnd
+
+  \resumeSubheading
+    {Honors \& Awards}{}
+    {Competitive Programming \& Hackathons}{2023 -- 2024}
+  \resumeItemListStart
+    \resumeItem{2nd Runner Up, Insignia 2K24}{Secured 3rd position in coding/aptitude event at MCKV Institute (Sep 2024).}
+    \resumeItem{Winner, Hack-o-Mania}{Ranked 1st among 50+ participants at University of Calcutta (Sep 2024).}
+    \resumeItem{Winner, Techtrix Codathon}{Secured 1st place against 100+ participants at RCCIIT (Mar 2024).}
+    \resumeItem{Winner, Innovision Codathon}{Achieved 1st place in departmental coding competition (Sep 2023).}
+  \resumeItemListEnd
+\resumeSubHeadingListEnd
+
+%-----------CERTIFICATIONS & LANGUAGES-----------------
+\section{Certifications \& Languages}
+\resumeSubHeadingListStart
+  \resumeItem{Certifications}{NPTEL C Programming \& Assembly (Top 1\%, Score 82\%); Electronics and Circuit Design.}
+  \resumeItem{Languages}{English (C2), Bengali (~C1), Hindi (~B1), German (High A1).}
+\resumeSubHeadingListEnd
+
+\end{document}

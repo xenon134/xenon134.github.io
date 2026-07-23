@@ -3,97 +3,302 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Portfolio</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Timothy Utsab Bandyopadhyay - Resume</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
+        body { font-family: 'Public Sans', sans-serif; }
+        h1, h2, h3, .font-garet { font-family: 'Garet', 'Public Sans', sans-serif; }
+        .theme-bg-dark { background-color: #E6DDD1; }
+        .theme-bg-light { background-color: #F6F2EB; }
+        .theme-text { color: #3A322C; }
+        .theme-accent { color: #8A7865; }
+        .theme-accent-bg { background-color: #8A7865; }
+        .theme-bar-bg { background-color: #D1CBC3; }
+    </style>
 </head>
-<body>
-    <header>
-        <div class="container">
-            <div class="profile-picture">
-                <img src="pasted_im1.png" alt="profile-picture">
-            </div>
-            <div class="intro">
-                <h1>Timothy Utsab Bandyopadhyay</h1>
-                <p>Passionate computer science student with experience in full-stack development. Skilled in multiple programming languages and committed to enhance software functionality and user experience.</p>
-            </div>
-        </div>
-    </header>
+<body class="bg-gray-100 py-10 text-[#3A322C]">
 
-    <section id="projects">
-        <h2>Personal Projects</h2>
-        <div class="projects-container">
-            <div class="project">
-                <h3>EmotiScan</h3>
-                <p>AI Emotion Detection software written in python.</p>
-                <a href="https://github.com/xenon134/emotiscan">Github Repository</a>
-            </div>
-            <div class="project">
-                <h3>Reciprocate</h3>
-                <p>Robust online screensharing software with several advanced features.</p>
-                <a href="https://github.com/xenon134/reciprocate">Github Repository</a>
-            </div>
-        </div>
-        <br>
-        <div class="projects-container">
-            <div class="project">
-                <h3>Barbiana</h3>
-                <p>Video Playback Synchronizer: Watch movies/shows together with friends online.</p>
-                <a href="https://github.com/xenon134/barbiana">Github Repository</a>&emsp;&emsp;
-                <a href="https://timothyutsab.pythonanywhere.com/barbiana">&ensp;&emsp;Deployment&emsp;&ensp;</a>
-            </div>
-            <div class="project">
-                <h3>Nexus</h3>
-                <p>Too bored of regular Tic Tac Toe? Play online with your friends on this Tic Tac Toe board that extends infinitely in all dimensions. <i>Made using p5.js</i></p>
-                <!-- <p>Infinitely extending Tic Tac Toe game using <i>p5.js</i></p> -->
-                <a href="https://github.com/xenon134/Nexus">Github Repository</a>&emsp;&emsp;
-                <a href="https://timothyutsab.pythonanywhere.com/nexus">&ensp;&emsp;Deployment&emsp;&ensp;</a>
-            </div>
-        </div>
-        <br>
-        <div class="projects-container">
-            <div class="project">
-                <h3>Corvin</h3>
-                <p>Online chat App (Full stack) with python asyncio backend</p>
-                <a href="https://github.com/xenon134/corvin">Github Repository</a>&emsp;&emsp;
-                <a href="https://timothyutsab.pythonanywhere.com/corvin">&ensp;&emsp;Deployment&emsp;&ensp;</a>
-            </div>
-            <div class="project">
-                <h3>Duplex</h3>
-                <p>Tired of helping your friends fix their computer and watching as they fail miserably? Remote in with <b>Duplex</b> to enjoy a fast, secure and reliable connection.</p>
-                <a href="https://github.com/xenon134/duplex">Github Repository</a>
-            </div>
-        </div>
-        <br>
-        <div class="projects-container">
-            <div class="project">
-                <h3>Physiandbox</h3>
-                <p>Fast, accurate particle interaction simulator. Great for students and researchers alike.</p>
-                <a href="https://github.com/xenon134/physiandbox">Github Repository</a>&emsp;&emsp;
-            </div>
-            <div class="project">
-                <h3>import wizard;</h3>
-                <p>Java Coding Assistant: Auto generate import statements and avoid all of those pesky compilation error every time!</p>
-                <a href="https://github.com/xenon134/duplex">Github Repository</a>
-            </div>
-        </div>
-        <br>
-        <div class="projects-container">
-            <div class="project">
-                <h3>Physiandbox</h3>
-                <p>Fast, accurate particle interaction simulator. Great for students and researchers alike.</p>
-                <a href="https://github.com/xenon134/physiandbox">Github Repository</a>&emsp;&emsp;
-            </div>
-            <div class="project">
-                <h3>Toolbox Pixel</h3>
-                <p>Suite of tools for common operations on image and video files.</p>
-                <a href="https://github.com/xenon134/toolbox">Github Repository</a>
-            </div>
-        </div>
-    </section>
+    <div class="max-w-6xl mx-auto bg-white shadow-xl flex flex-col md:flex-row overflow-hidden">
+        
+        <div class="w-full md:w-[35%] theme-bg-dark p-8 space-y-12 shrink-0">
+            
+            <section>
+                <h2 class="text-2xl font-bold mb-6 tracking-wide uppercase">Contact</h2>
+                <ul class="space-y-4 text-sm">
+                    <li class="flex items-center gap-3">
+                        <svg class="w-5 h-5 theme-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>
+                        <a href="https://xenon134.github.io" class="hover:underline hover:text-[#8A7865] transition-colors">xenon134.github.io</a>
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <svg class="w-5 h-5 theme-accent" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                        <span>timothy-utsab</span>
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <svg class="w-5 h-5 theme-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                        <a href="mailto:timothy.utsab@gmail.com" class="hover:underline hover:text-[#8A7865] transition-colors">timothy.utsab@gmail.com</a>
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <svg class="w-5 h-5 theme-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                        <span>+91 8336 086 014</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <svg class="w-5 h-5 theme-accent shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        <span>76/1B R.B.C. Road<br>Kolkata 700028</span>
+                    </li>
+                </ul>
+            </section>
 
-    <footer>
-        <!-- <p>&copy; 2024 Your Name. All Rights Reserved.</p> -->
-        <a href="resume.pdf">Download Resume</a>
-    </footer>
+            <section>
+                <h2 class="text-2xl font-bold mb-6 tracking-wide uppercase">Education</h2>
+                <div class="relative border-l-2 border-[#A89B8D] ml-2 space-y-8">
+                    <div class="pl-6 relative">
+                        <div class="absolute w-3 h-3 theme-accent-bg rounded-full -left-[7px] top-1.5"></div>
+                        <h3 class="font-bold text-lg leading-tight mb-1">Bachelor of<br>Technology:<br>Computer Science<br>Engineering</h3>
+                        <p class="text-xs font-semibold mb-2 text-[#7A6A58]">2023-2027</p>
+                        <p class="text-sm mb-2">at RCC Institute of Information Technology, Kolkata, West Bengal</p>
+                        <p class="font-semibold mb-3">7.6 CGPA</p>
+                        <p class="text-xs leading-relaxed text-gray-700">Active member of the <em>Unstop Igniters</em> Technology and Developement Club as part of which, I organized and designed several Coding competitions and CTFs</p>
+                    </div>
+                    <div class="pl-6 relative">
+                        <div class="absolute w-3 h-3 theme-accent-bg rounded-full -left-[7px] top-1.5"></div>
+                        <h3 class="font-bold text-lg mb-1">CISCE Board -<br>Science</h3>
+                        <p class="text-xs font-semibold mb-2 text-[#7A6A58]">July 2021 - August 2023</p>
+                        <p class="text-sm font-semibold mb-1">89% in CISCE Board<br>Examinations</p>
+                        <p class="text-sm mb-3">St. Stephen's School, Kolkata</p>
+                        <p class="text-xs leading-relaxed text-gray-700">Core Committee member of the Computer Club, and of The Reader's Club.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h2 class="text-2xl font-bold mb-6 tracking-wide uppercase">Certifications</h2>
+                <ul class="list-disc ml-5 text-sm space-y-3">
+                    <li>
+                        <span class="font-medium">NPTEL - C Programming and Assembly Language</span><br>
+                        <span class="text-xs text-gray-700 mt-1 block">Score: Top 1% (82%)</span>
+                    </li>
+                </ul>
+            </section>
+
+            <section>
+                <h2 class="text-2xl font-bold mb-6 tracking-wide uppercase">Languages</h2>
+                <div class="space-y-4 text-sm">
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <span class="font-medium">English</span>
+                            <span class="text-xs text-gray-600">C2 Level</span>
+                        </div>
+                        <div class="w-full theme-bar-bg rounded-full h-1.5">
+                            <div class="theme-accent-bg h-1.5 rounded-full" style="width: 95%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <span class="font-medium">Bengali</span>
+                            <span class="text-xs text-gray-600">~C1</span>
+                        </div>
+                        <div class="w-full theme-bar-bg rounded-full h-1.5">
+                            <div class="theme-accent-bg h-1.5 rounded-full" style="width: 80%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <span class="font-medium">Hindi</span>
+                            <span class="text-xs text-gray-600">~B1</span>
+                        </div>
+                        <div class="w-full theme-bar-bg rounded-full h-1.5">
+                            <div class="theme-accent-bg h-1.5 rounded-full" style="width: 40%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <span class="font-medium">German</span>
+                            <span class="text-xs text-gray-600">High A1</span>
+                        </div>
+                        <div class="w-full theme-bar-bg rounded-full h-1.5">
+                            <div class="theme-accent-bg h-1.5 rounded-full" style="width: 20%"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h2 class="text-2xl font-bold mb-6 tracking-wide uppercase">Soft Skills</h2>
+                <div class="flex flex-wrap gap-2 text-sm">
+                    <span class="bg-white/50 px-3 py-1 rounded-md border border-[#D1CBC3]">Critical Thinking</span>
+                    <span class="bg-white/50 px-3 py-1 rounded-md border border-[#D1CBC3]">Problem Solving</span>
+                    <span class="bg-white/50 px-3 py-1 rounded-md border border-[#D1CBC3]">Adaptibility</span>
+                    <span class="bg-white/50 px-3 py-1 rounded-md border border-[#D1CBC3]">Resourcefulness</span>
+                    <span class="bg-white/50 px-3 py-1 rounded-md border border-[#D1CBC3]">Creativity</span>
+                    <span class="bg-white/50 px-3 py-1 rounded-md border border-[#D1CBC3]">Communication</span>
+                </div>
+            </section>
+
+        </div>
+
+        <div class="w-full md:w-[65%] p-8 space-y-12">
+            
+            <header class="theme-bg-light p-8 rounded-sm border-l-4 border-[#8A7865]">
+                <h1 class="text-3xl md:text-4xl font-bold tracking-wide mb-3 uppercase">Timothy Utsab<br>Bandyopadhyay</h1>
+                <p class="text-base leading-relaxed text-gray-800">B.Tech Computer science student with experience in full-stack development. Skilled in multiple programming languages and has made several projects come to life from scratch.</p>
+            </header>
+
+            <section>
+                <h2 class="text-2xl font-bold mb-6 tracking-wide uppercase border-b-2 border-gray-100 pb-2">Experience</h2>
+                <div class="relative border-l-2 border-gray-200 ml-2 space-y-8">
+                    <div class="pl-6 relative">
+                        <div class="absolute w-3 h-3 theme-accent-bg rounded-full -left-[7px] top-1.5 shadow-[0_0_0_4px_white]"></div>
+                        <div class="flex flex-col md:flex-row md:justify-between md:items-baseline mb-1">
+                            <h3 class="text-xl font-semibold">DiagnoEasy Healthtech</h3>
+                            <span class="text-xs font-medium text-gray-500 uppercase tracking-wider">12th August 2025 - Present</span>
+                        </div>
+                        <p class="text-sm font-medium text-gray-600 mb-3">Live Project Internship</p>
+                        <p class="text-sm leading-relaxed text-gray-700">My team and I worked closely with the founding group to bring our winning innovation challenge project to life and integrate it into their existing technology for future use.</p>
+                    </div>
+                    <div class="pl-6 relative">
+                        <div class="absolute w-3 h-3 bg-gray-300 rounded-full -left-[7px] top-1.5 shadow-[0_0_0_4px_white]"></div>
+                        <div class="flex flex-col md:flex-row md:justify-between md:items-baseline mb-1">
+                            <h3 class="text-xl font-semibold">Indian Institute of Technology, Bombay</h3>
+                            <span class="text-xs font-medium text-gray-500 uppercase tracking-wider">July 2024</span>
+                        </div>
+                        <p class="text-sm font-medium text-gray-600 mb-3">Research Assistant</p>
+                        <p class="text-sm leading-relaxed text-gray-700">Worked on Computer Vision in Python for the project <em>Serpenoid robots for unmanned exploration of Moon and Mars</em>.</p>
+                    </div>
+                    <div class="pl-6 relative">
+                        <div class="absolute w-3 h-3 bg-gray-300 rounded-full -left-[7px] top-1.5 shadow-[0_0_0_4px_white]"></div>
+                        <div class="flex flex-col md:flex-row md:justify-between md:items-baseline mb-1">
+                            <h3 class="text-xl font-semibold">Innovision 2025 (RCCIIT)</h3>
+                            <span class="text-xs font-medium text-gray-500 uppercase tracking-wider">August 2025</span>
+                        </div>
+                        <p class="text-sm font-medium text-gray-600 mb-3">Other Experience</p>
+                        <p class="text-sm leading-relaxed text-gray-700">Led a team in organizing and designing a <strong>Capture the Flag (CTF) event</strong> at Innovision 2025, the annual departmental fest of RCC Institute of Information Technology which saw over 200 participants.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h2 class="text-2xl font-bold mb-6 tracking-wide uppercase border-b-2 border-gray-100 pb-2">Technical Skills</h2>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 text-sm">
+                    <div>
+                        <h3 class="font-semibold mb-3 text-gray-800">Technologies & Domains</h3>
+                        <ul class="space-y-2 text-gray-700">
+                            <li class="flex items-start gap-2"><span class="theme-accent mt-0.5 text-lg leading-none">&bull;</span> Python web frameworks: Django, Flask</li>
+                            <li class="flex items-start gap-2"><span class="theme-accent mt-0.5 text-lg leading-none">&bull;</span> Python web scraping (Selenium web driver)</li>
+                            <li class="flex items-start gap-2"><span class="theme-accent mt-0.5 text-lg leading-none">&bull;</span> Physical Computing</li>
+                            <li class="flex items-start gap-2"><span class="theme-accent mt-0.5 text-lg leading-none">&bull;</span> Computer Vision</li>
+                            <li class="flex items-start gap-2"><span class="theme-accent mt-0.5 text-lg leading-none">&bull;</span> Linux (Ubuntu, Debian, Kali)</li>
+                            <li class="flex items-start gap-2"><span class="theme-accent mt-0.5 text-lg leading-none">&bull;</span> Electronics and Circuit Design</li>
+                        </ul>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-sm border border-gray-100">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="text-gray-500 uppercase text-xs tracking-wider border-b border-gray-200">
+                                    <th class="pb-2 font-semibold">Language</th>
+                                    <th class="pb-2 font-semibold">Proficiency</th>
+                                </tr>
+                            </thead>
+                            <tbody class="space-y-2 text-gray-700">
+                                <tr><td class="pt-2 font-medium">Python</td><td class="pt-2 text-gray-500 text-xs">Advanced</td></tr>
+                                <tr><td class="pt-1 font-medium">Java</td><td class="pt-1 text-gray-500 text-xs">Advanced</td></tr>
+                                <tr><td class="pt-1 font-medium">HTML / JS / CSS</td><td class="pt-1 text-gray-500 text-xs">Intermediate</td></tr>
+                                <tr><td class="pt-1 font-medium">PHP</td><td class="pt-1 text-gray-500 text-xs">Intermediate</td></tr>
+                                <tr><td class="pt-1 font-medium">Bash & Batch</td><td class="pt-1 text-gray-500 text-xs">Intermediate</td></tr>
+                                <tr><td class="pt-1 font-medium">C/C++</td><td class="pt-1 text-gray-500 text-xs">Intermediate</td></tr>
+                                <tr><td class="pt-1 font-medium">C#</td><td class="pt-1 text-gray-500 text-xs">Beginner</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h2 class="text-2xl font-bold mb-6 tracking-wide uppercase border-b-2 border-gray-100 pb-2">Personal Projects</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-6">
+                    <div class="bg-white border border-gray-200 p-4 rounded-sm shadow-sm hover:shadow-md transition-shadow">
+                        <h4 class="font-semibold text-[#3A322C] mb-1">Human Emotion Detector</h4>
+                        <p class="text-gray-600 text-xs leading-relaxed">Built using <em>Tensorflow</em> and <em>Keras</em>.</p>
+                    </div>
+                    <div class="bg-white border border-gray-200 p-4 rounded-sm shadow-sm hover:shadow-md transition-shadow">
+                        <h4 class="font-semibold text-[#3A322C] mb-1">Video Playback Synchronizer</h4>
+                        <p class="text-gray-600 text-xs leading-relaxed">Watch movies/shows together with friends online using <strong>websockets</strong> and a Python backend.</p>
+                    </div>
+                    <div class="bg-white border border-gray-200 p-4 rounded-sm shadow-sm hover:shadow-md transition-shadow">
+                        <h4 class="font-semibold text-[#3A322C] mb-1">Online Screen Sharing</h4>
+                        <p class="text-gray-600 text-xs leading-relaxed">Real-time software using <strong>socket-level networking</strong>.</p>
+                    </div>
+                    <div class="bg-white border border-gray-200 p-4 rounded-sm shadow-sm hover:shadow-md transition-shadow">
+                        <h4 class="font-semibold text-[#3A322C] mb-1">Online Chat App</h4>
+                        <p class="text-gray-600 text-xs leading-relaxed">Full stack application with a <strong>Python asyncio backend</strong>.</p>
+                    </div>
+                    <div class="bg-white border border-gray-200 p-4 rounded-sm shadow-sm hover:shadow-md transition-shadow">
+                        <h4 class="font-semibold text-[#3A322C] mb-1">Infinite Tic Tac Toe</h4>
+                        <p class="text-gray-600 text-xs leading-relaxed">Infinitely extending game built using <em>p5.js</em>.</p>
+                    </div>
+                    <div class="bg-white border border-gray-200 p-4 rounded-sm shadow-sm hover:shadow-md transition-shadow flex items-center">
+                        <h4 class="font-semibold text-[#3A322C]">Remote Desktop Solution</h4>
+                    </div>
+                </div>
+
+                <div class="bg-[#F6F2EB] p-5 rounded-sm">
+                    <h3 class="font-semibold text-sm mb-3 uppercase tracking-wider text-[#8A7865]">Other Miscellaneous Projects</h3>
+                    <ul class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-700">
+                        <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-[#8A7865]"></span> Physics Simulator</li>
+                        <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-[#8A7865]"></span> Coding Assistant for Java</li>
+                        <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-[#8A7865]"></span> Running Processes Explorer</li>
+                        <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-[#8A7865]"></span> Image and Video Editing Software</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section>
+                <h2 class="text-2xl font-bold mb-6 tracking-wide uppercase border-b-2 border-gray-100 pb-2">Honors</h2>
+                <div class="space-y-6">
+                    <div class="flex flex-col sm:flex-row gap-4 sm:gap-6">
+                        <div class="sm:w-1/4 shrink-0">
+                            <p class="text-xs font-bold text-[#8A7865] uppercase tracking-wider mt-1">Sep 2024</p>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-800 mb-1">2nd Runner Up Insignia 2K24</h3>
+                            <p class="text-sm text-gray-600 leading-relaxed">Secured 3rd position in Insignia 2K24, a coding cum aptitude event organized by the Department of Computer Science and Engineering (Data Science) of MCKV Institute of Engineering.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-4 sm:gap-6">
+                        <div class="sm:w-1/4 shrink-0">
+                            <p class="text-xs font-bold text-[#8A7865] uppercase tracking-wider mt-1">Sep 2024</p>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-800 mb-1">Winner of Physiantrix: Hack-o-Mania</h3>
+                            <p class="text-sm text-gray-600 leading-relaxed">Finished 1st in the event Hack-o-Mania held at University of Calcutta out of 50+ skilled participants from various colleges in and around Kolkata.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-4 sm:gap-6">
+                        <div class="sm:w-1/4 shrink-0">
+                            <p class="text-xs font-bold text-[#8A7865] uppercase tracking-wider mt-1">Mar 2024</p>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-800 mb-1">Winner of RCCIIT Techtrix: Codathon</h3>
+                            <p class="text-sm text-gray-600 leading-relaxed">Secured 1st place in the Techtrix: Codathon event at RCCIIT, competing against 100+ participants from colleges across Kolkata and nearby regions.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-4 sm:gap-6">
+                        <div class="sm:w-1/4 shrink-0">
+                            <p class="text-xs font-bold text-[#8A7865] uppercase tracking-wider mt-1">Sep 2023</p>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-800 mb-1">Winner of RCCIIT Innovision: Codathon</h3>
+                            <p class="text-sm text-gray-600 leading-relaxed">Achieved 1st place in the Techtrix: Codathon event at RCCIIT, after competing among over 100 participants from the colleges.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
 </body>
 </html>
